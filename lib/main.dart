@@ -1,10 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-
+import 'package:geolocator/geolocator.dart';
 void main() {
   runApp(const MyApp());
 }
@@ -47,13 +48,29 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   PanelController panelController = PanelController();
   List<SearchResultRow> searchResults = List.empty(growable: true);
+  LatLng userPosition = const LatLng(0, 0);
+  final LocationSettings locationSettings = const LocationSettings(
+    accuracy: LocationAccuracy.high,
+    distanceFilter: 100,
+  );
+  late StreamSubscription<Position> positionStream;
+  late Timer timer;
   int _counter = 0;
 
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
+  void backgroundUpdate() async {
+    
+    var perm = await Geolocator.checkPermission();
+    if (perm == LocationPermission.always || perm == LocationPermission.whileInUse) {
+      var pos = await Geolocator.getCurrentPosition();
+      userPosition = LatLng(pos.latitude, pos.longitude);
+      print('${pos.latitude}, ${pos.longitude}');
+    }
+    else {
+      await Geolocator.requestPermission();
+    }
   }
+
+
 
   void searchAddresses(String string) async {
     searchResults = List.empty(growable: true);
@@ -84,6 +101,20 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    //timer = Timer.periodic(Duration(seconds: 5), (Timer t) => backgroundUpdate());
+    positionStream = Geolocator.getPositionStream(locationSettings: locationSettings).listen(
+      (Position? position) {
+        setState(() {
+          userPosition = LatLng(position == null ? 0 : position.latitude, position == null ? 0 : position.longitude);   
+        });
+        print("${position?.latitude}, ${position?.longitude}");
+        
+      });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Stack(
       children: [
@@ -99,7 +130,8 @@ class _MyHomePageState extends State<MyHomePage> {
             TileLayer(
               urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
               userAgentPackageName: 'com.example.app',
-            )
+            ),
+            MarkerLayer(markers: [Marker(point: userPosition, width: 30, height: 30, child: Center(child: Text("YOU ARE HERE")))])
           ],
         ),
         SlidingUpPanel(
