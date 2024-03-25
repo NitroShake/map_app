@@ -50,26 +50,11 @@ class _MyHomePageState extends State<MyHomePage> {
   List<SearchResultRow> searchResults = List.empty(growable: true);
   LatLng userPosition = const LatLng(0, 0);
   final LocationSettings locationSettings = const LocationSettings(
-    accuracy: LocationAccuracy.high,
-    distanceFilter: 100,
+    accuracy: LocationAccuracy.bestForNavigation,
+    distanceFilter: 0,
   );
   late StreamSubscription<Position> positionStream;
   late Timer timer;
-  int _counter = 0;
-
-  void backgroundUpdate() async {
-    
-    var perm = await Geolocator.checkPermission();
-    if (perm == LocationPermission.always || perm == LocationPermission.whileInUse) {
-      var pos = await Geolocator.getCurrentPosition();
-      userPosition = LatLng(pos.latitude, pos.longitude);
-      print('${pos.latitude}, ${pos.longitude}');
-    }
-    else {
-      await Geolocator.requestPermission();
-    }
-  }
-
 
 
   void searchAddresses(String string) async {
@@ -100,18 +85,30 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    //timer = Timer.periodic(Duration(seconds: 5), (Timer t) => backgroundUpdate());
+  void updatePosition() async {
+    var perm = await Geolocator.checkPermission();
+    print(perm);
+    while (perm != LocationPermission.always && perm != LocationPermission.whileInUse) {
+      await Geolocator.requestPermission();
+      await Future.delayed(const Duration(milliseconds: 1000));
+      print("e");
+      perm = await Geolocator.checkPermission();
+    }
     positionStream = Geolocator.getPositionStream(locationSettings: locationSettings).listen(
       (Position? position) {
         setState(() {
           userPosition = LatLng(position == null ? 0 : position.latitude, position == null ? 0 : position.longitude);   
         });
-        print("${position?.latitude}, ${position?.longitude}");
-        
-      });
+      print("${position?.latitude}, ${position?.longitude}");
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    //timer = Timer.periodic(Duration(seconds: 5), (Timer t) => backgroundUpdate());
+
+    Timer.run(() {updatePosition();});
   }
 
   @override
