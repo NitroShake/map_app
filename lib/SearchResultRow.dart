@@ -8,6 +8,7 @@ import 'package:map_app/AddressSearchResult.dart';
 import 'package:map_app/SystemManager.dart';
 
 class SearchResultRow extends StatelessWidget {
+  
   const SearchResultRow({
     required this.details,
     required this.optionStyle,

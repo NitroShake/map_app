@@ -12,6 +12,7 @@ import 'package:geolocator/geolocator.dart';
 import 'SearchResultRow.dart';
 import 'AddressSearchResult.dart';
 import 'SearchMenu.dart';
+import 'MapRoute.dart';
 void main() {
   runApp(const MyApp());
 }
@@ -56,8 +57,12 @@ class _MyHomePageState extends State<MyHomePage> {
   final MapController mapController = MapController();
   final GlobalKey<NavigatorState> searchKey = GlobalKey<NavigatorState>();
 
+
   List<SearchResultRow> searchResults = List.empty(growable: true);
   LatLng userPosition = const LatLng(0, 0);
+  late StreamSubscription<Position> positionStream;
+  late Timer timer;
+
   final LocationSettings locationSettings = const LocationSettings(
     accuracy: LocationAccuracy.bestForNavigation,
     distanceFilter: 0,
@@ -70,8 +75,18 @@ class _MyHomePageState extends State<MyHomePage> {
     urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
     userAgentPackageName: 'com.example.app',
   );
-  late StreamSubscription<Position> positionStream;
-  late Timer timer;
+
+  MapRoute? route;
+  void createNewRoute(double latStart, double lonStart, double latEnd, double lonEnd) async {
+    final response = await http
+      .get(Uri.parse('https://router.project-osrm.org/route/v1/driving/${lonStart},${latStart};${lonEnd},${latEnd}?overview=false&steps=true&geometries=geojson&annotations=false'));
+    
+    if (response.statusCode == 200) {
+      Map<String, dynamic> map = json.decode(response.body);
+
+      route = MapRoute.fromJson(map);
+    }
+  }
 
   void updatePosition() async {
     var perm = await Geolocator.checkPermission();
@@ -89,6 +104,8 @@ class _MyHomePageState extends State<MyHomePage> {
         });
       print("${position?.latitude}, ${position?.longitude}");
     });
+    var position = await Geolocator.getCurrentPosition();
+    mapController.move(LatLng(position.latitude, position.longitude), mapController.camera.zoom);
   }
 
   @override

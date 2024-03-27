@@ -20,7 +20,7 @@ class SearchMenu extends StatefulWidget {
 
 class _SearchMenuState extends State<SearchMenu> {
   List<Widget> searchResults = List.empty(growable: true);
-  final ButtonStyle menuOptionButtonStyle = OutlinedButton.styleFrom(
+  final ButtonStyle queryResultButtonStyle = OutlinedButton.styleFrom(
     shape: const LinearBorder(top: LinearBorderEdge()),
     padding: EdgeInsets.all(10)
   );
@@ -47,7 +47,7 @@ class _SearchMenuState extends State<SearchMenu> {
           onSubmitted: searchAddresses,)
         );
         for (var entry in entries) {
-          searchResults.add(SearchResultRow(details: entry, optionStyle: menuOptionButtonStyle));
+          searchResults.add(SearchResultRow(details: entry, optionStyle: queryResultButtonStyle));
         }
       });
     }
