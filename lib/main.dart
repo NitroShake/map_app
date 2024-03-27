@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:map_app/SystemManager.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -94,7 +95,8 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     //timer = Timer.periodic(Duration(seconds: 5), (Timer t) => backgroundUpdate());
-
+    SystemManager().mainPanelController = panelController;
+    SystemManager().mapController = mapController;
     Timer.run(() {updatePosition();});
   }
 
@@ -129,7 +131,7 @@ class _MyHomePageState extends State<MyHomePage> {
               Expanded(child: Material(child: TabBarView(children: [
                 Navigator(
                   key: searchKey,
-                  onGenerateRoute: (route) => MaterialPageRoute(settings: route, builder: (context) => SearchMenu(title: "Hello", panelController: panelController, mapController: mapController)),
+                  onGenerateRoute: (route) => MaterialPageRoute(settings: route, builder: (context) => SearchMenu(title: "Search")),
                 ),
                 //SearchMenu(title: "Hello", panelController: panelController),
                 Icon(Icons.bookmark),

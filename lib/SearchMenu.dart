@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:map_app/SystemManager.dart';
 
 import 'SearchResultRow.dart';
 import 'package:flutter/material.dart';
@@ -9,20 +10,15 @@ import 'package:map_app/AddressSearchResult.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 class SearchMenu extends StatefulWidget {
-  final PanelController panelController;
-  final MapController mapController;
-
-  const SearchMenu({super.key, required this.title, required this.panelController, required this.mapController});
+  const SearchMenu({super.key, required this.title});
 
   final String title;
 
   @override
-  State<SearchMenu> createState() => _SearchMenuState(panelController, mapController);
+  State<SearchMenu> createState() => _SearchMenuState();
 }
 
 class _SearchMenuState extends State<SearchMenu> {
-  late PanelController panelController;
-  late MapController mapController;
   List<Widget> searchResults = List.empty(growable: true);
   final ButtonStyle menuOptionButtonStyle = OutlinedButton.styleFrom(
     shape: const LinearBorder(top: LinearBorderEdge()),
@@ -47,23 +43,21 @@ class _SearchMenuState extends State<SearchMenu> {
       setState(() {  
         searchResults.add(
           TextField(
-          onTap: () { panelController.open(); },
+          onTap: () { SystemManager().mainPanelController.open(); },
           onSubmitted: searchAddresses,)
         );
         for (var entry in entries) {
-          searchResults.add(SearchResultRow(details: entry, optionStyle: menuOptionButtonStyle, mapController: mapController,));
+          searchResults.add(SearchResultRow(details: entry, optionStyle: menuOptionButtonStyle));
         }
       });
     }
   }
 
-  _SearchMenuState(PanelController pc, MapController mc) {
-    mapController = mc;
-    panelController = pc;
+  _SearchMenuState() {
     Timer.run(() => setState(() {  
         searchResults.add(
           TextField(
-          onTap: () { panelController.open(); },
+          onTap: () { SystemManager().mainPanelController.open(); },
           onSubmitted: searchAddresses,)
         );
       }
