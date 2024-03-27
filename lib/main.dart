@@ -1,11 +1,16 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
+
+import 'SearchResultRow.dart';
+import 'AddressSearchResult.dart';
+import 'SearchMenu.dart';
 void main() {
   runApp(const MyApp());
 }
@@ -46,44 +51,25 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  PanelController panelController = PanelController();
+  final PanelController panelController = PanelController();
+  final GlobalKey<NavigatorState> searchKey = GlobalKey<NavigatorState>();
+
   List<SearchResultRow> searchResults = List.empty(growable: true);
   LatLng userPosition = const LatLng(0, 0);
   final LocationSettings locationSettings = const LocationSettings(
     accuracy: LocationAccuracy.bestForNavigation,
     distanceFilter: 0,
   );
+  final ButtonStyle menuOptionButtonStyle = OutlinedButton.styleFrom(
+    shape: const LinearBorder(top: LinearBorderEdge()),
+    padding: EdgeInsets.all(10)
+  );
+  final TileLayer tileLayer = TileLayer(
+    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+    userAgentPackageName: 'com.example.app',
+  );
   late StreamSubscription<Position> positionStream;
   late Timer timer;
-
-
-  void searchAddresses(String string) async {
-    searchResults = List.empty(growable: true);
-    List<AddressSearchResultGeocoded> entries = List<AddressSearchResultGeocoded>.empty();
-    final response = await http
-      .get(Uri.parse('https://nominatim.openstreetmap.org/search?format=geocodejson&addressdetails=1&q=${Uri.encodeComponent(string)}'));
-    
-    if (response.statusCode == 200) {
-      print(response.body);
-
-      //geocodejson
-      String test = "[${response.body}]";
-      List<dynamic> m = json.decode((test));
-      Iterable i = m[0]['features'];
-
-      //regular json
-      //Iterable i = json.decode(response.body);
-
-
-      //entries = List<AddressSearchResult>.from(jsonDecode(response.body).Map((x) => AddressSearchResult.fromJson(x)));
-      entries = List<AddressSearchResultGeocoded>.from(i.map((e) => AddressSearchResultGeocoded.fromJson(e)));
-      setState(() {   
-        for (var entry in entries) {
-          searchResults.add(new SearchResultRow(title: "${entry.name}, ${entry.city}", subtitle: "${entry.county}, ${entry.country}"));
-        }
-      });
-    }
-  }
 
   void updatePosition() async {
     var perm = await Geolocator.checkPermission();
@@ -124,152 +110,33 @@ class _MyHomePageState extends State<MyHomePage> {
             cameraConstraint: CameraConstraint.contain(bounds: LatLngBounds(const LatLng(-90, -180), const LatLng(90, 180))),
           ),
           children: [
-            TileLayer(
-              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-              userAgentPackageName: 'com.example.app',
-            ),
-            MarkerLayer(markers: [Marker(point: userPosition, width: 30, height: 30, child: Center(child: Text("YOU ARE HERE")))])
+            tileLayer,
+            MarkerLayer(markers: [Marker(point: userPosition, width: 30, height: 30, child: const Center(child: Icon(Icons.location_on)))])
           ],
         ),
         SlidingUpPanel(
           controller: panelController,
           onPanelClosed: () {FocusManager.instance.primaryFocus?.unfocus();},
-          panel: Column(
+          panel: DefaultTabController(length: 3, child: Column ( 
             children: [
-              Row(children: [
-                Expanded(child: Material(child: TextField(
-                  onTap: () { panelController.open(); },
-                  onSubmitted: searchAddresses,
-                ))),
-                FilledButton(onPressed: () => {}, child: const Text('B')),
-                FilledButton(onPressed: () => {}, child: const Text('S'))]
-              ),
-              Expanded(
-                child:ListView(
-                  children: searchResults,
+              const Material(child: TabBar(tabs: [
+                Tab(icon: Icon(Icons.search)),
+                Tab(icon: Icon(Icons.bookmark),),
+                Tab(icon: Icon(Icons.settings),),
+              ])),
+              Expanded(child: Material(child: TabBarView(children: [
+                Navigator(
+                  key: searchKey,
+                  onGenerateRoute: (route) => MaterialPageRoute(settings: route, builder: (context) => SearchMenu(title: "Hello", panelController: panelController)),
                 ),
-              ),
-            ],
+                //SearchMenu(title: "Hello", panelController: panelController),
+                Icon(Icons.bookmark),
+                Icon(Icons.settings),
+              ]),))
+            ],)
           ),
         )
       ],
     );
-  }
-}
-
-class SearchResultRow extends StatelessWidget {
-  const SearchResultRow({
-    required this.title,
-    required this.subtitle
-  });
-  final String title;
-  final String subtitle;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(title, textScaler: const TextScaler.linear(0.5)),
-        Text(subtitle, textScaler: const TextScaler.linear(0.25)),
-        const Divider()
-      ],
-    );
-  }
-}
-
-class AddressSearchResult {
-  final String lat;
-  final String long;
-  final String classification;
-  final String type;
-  final String addressType;
-  final String name;
-  final Map<String, dynamic> address;
-
-  const AddressSearchResult({
-    required this.lat,
-    required this.long,
-    required this.classification,
-    required this.type,
-    required this.addressType,
-    required this.name,
-    required this.address
-  });
-
-  factory AddressSearchResult.fromJson(Map<String, dynamic> json) {
-    try {
-      return AddressSearchResult(
-        lat: json["lat"], 
-        long: json["lon"], 
-        classification: json['class'], 
-        type: json['type'], 
-        addressType: json['addresstype'], 
-        name: json['name'], 
-        address: json['address']
-      );
-    }
-    on Exception catch (e) {throw Exception("JSON invalid. ${e.toString()}");}
-  }
-}
-
-class AddressSearchResultGeocoded {
-  final double lat;
-  final double long;
-  final String classification;
-  final String type;
-  final String osmkey;
-  final String osmValue;
-  final String name;
-  final String? houseNumber;
-  final String? street;
-  final String? locality;
-  final String? district;
-  final String? postcode;
-  final String? city;
-  final String? county;
-  final String? state;
-  final String? country;
-
-  const AddressSearchResultGeocoded({
-    required this.lat,
-    required this.long,
-    required this.classification,
-    required this.type,
-    required this.osmkey,
-    required this.osmValue,
-    required this.name,
-    required this.houseNumber,
-    required this.street,
-    required this.locality, 
-    required this.district, 
-    required this.postcode, 
-    required this.city, 
-    required this.county, 
-    required this.state, 
-    required this.country
-  });
-
-  factory AddressSearchResultGeocoded.fromJson(Map<String, dynamic> json) {
-    try {
-      return AddressSearchResultGeocoded(
-        lat: json["geometry"]["coordinates"][0], 
-        long: json["geometry"]["coordinates"][1], 
-        classification: json["properties"]["geocoding"]['type'], 
-        type: json["properties"]["geocoding"]['type'], 
-        osmkey: json["properties"]["geocoding"]['osm_key'], 
-        osmValue: json["properties"]["geocoding"]['osm_value'],
-        name: json["properties"]["geocoding"]['name'], 
-        houseNumber: json["properties"]["geocoding"]['housenumber'], 
-        street: json["properties"]["geocoding"]['street'],
-        locality: json["properties"]["geocoding"]['locality'],
-        district: json["properties"]["geocoding"]['district'],
-        postcode: json["properties"]["geocoding"]['postcode'],
-        city: json["properties"]["geocoding"]['city'],
-        county: json["properties"]["geocoding"]['county'],
-        state: json["properties"]["geocoding"]['state'],
-        country: json["properties"]["geocoding"]['country']
-      );
-    }
-    on Exception catch (e) {throw Exception("JSON invalid. ${e.toString()}");}
   }
 }
