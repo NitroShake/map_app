@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter_map/flutter_map.dart';
+
 import 'SearchResultRow.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -8,17 +10,19 @@ import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 class SearchMenu extends StatefulWidget {
   final PanelController panelController;
+  final MapController mapController;
 
-  const SearchMenu({super.key, required this.title, required this.panelController});
+  const SearchMenu({super.key, required this.title, required this.panelController, required this.mapController});
 
   final String title;
 
   @override
-  State<SearchMenu> createState() => _SearchMenuState(panelController);
+  State<SearchMenu> createState() => _SearchMenuState(panelController, mapController);
 }
 
 class _SearchMenuState extends State<SearchMenu> {
   late PanelController panelController;
+  late MapController mapController;
   List<Widget> searchResults = List.empty(growable: true);
   final ButtonStyle menuOptionButtonStyle = OutlinedButton.styleFrom(
     shape: const LinearBorder(top: LinearBorderEdge()),
@@ -47,13 +51,14 @@ class _SearchMenuState extends State<SearchMenu> {
           onSubmitted: searchAddresses,)
         );
         for (var entry in entries) {
-          searchResults.add(SearchResultRow(details: entry, optionStyle: menuOptionButtonStyle,));
+          searchResults.add(SearchResultRow(details: entry, optionStyle: menuOptionButtonStyle, mapController: mapController,));
         }
       });
     }
   }
 
-  _SearchMenuState(PanelController pc) {
+  _SearchMenuState(PanelController pc, MapController mc) {
+    mapController = mc;
     panelController = pc;
     Timer.run(() => setState(() {  
         searchResults.add(

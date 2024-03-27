@@ -38,8 +38,8 @@ class AddressSearchResult {
   factory AddressSearchResult.fromJson(Map<String, dynamic> json) {
     try {
       return AddressSearchResult(
-        lat: json["geometry"]["coordinates"][0], 
-        long: json["geometry"]["coordinates"][1], 
+        lat: json["geometry"]["coordinates"][1], 
+        long: json["geometry"]["coordinates"][0], 
         classification: json["properties"]["geocoding"]['type'], 
         type: json["properties"]["geocoding"]['type'], 
         osmkey: json["properties"]["geocoding"]['osm_key'], 

@@ -1,13 +1,20 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:map_app/AddressSearchResult.dart';
 
 class SearchResultRow extends StatelessWidget {
   const SearchResultRow({
     required this.details,
-    required this.optionStyle
+    required this.optionStyle,
+    required this.mapController
   });
   final AddressSearchResult details;
   final ButtonStyle optionStyle;
+  final MapController mapController;
 
   String assembleDetails(List<String?> components) {
     String string = "";
@@ -26,6 +33,8 @@ class SearchResultRow extends StatelessWidget {
   Widget build(BuildContext context) {
       return OutlinedButton(
         onPressed: () {
+          mapController.move(LatLng(details.lat, details.long), min(mapController.camera.zoom, 15), offset: const Offset(0, -100));
+          print(mapController.camera.zoom);
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => Test()),

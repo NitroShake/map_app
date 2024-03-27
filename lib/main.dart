@@ -52,6 +52,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final PanelController panelController = PanelController();
+  final MapController mapController = MapController();
   final GlobalKey<NavigatorState> searchKey = GlobalKey<NavigatorState>();
 
   List<SearchResultRow> searchResults = List.empty(growable: true);
@@ -102,6 +103,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return Stack(
       children: [
         FlutterMap(
+          mapController: mapController,
           options: MapOptions(
             initialCenter: const LatLng(51.509364, -0.128928),
             initialZoom: 9.2,
@@ -127,7 +129,7 @@ class _MyHomePageState extends State<MyHomePage> {
               Expanded(child: Material(child: TabBarView(children: [
                 Navigator(
                   key: searchKey,
-                  onGenerateRoute: (route) => MaterialPageRoute(settings: route, builder: (context) => SearchMenu(title: "Hello", panelController: panelController)),
+                  onGenerateRoute: (route) => MaterialPageRoute(settings: route, builder: (context) => SearchMenu(title: "Hello", panelController: panelController, mapController: mapController)),
                 ),
                 //SearchMenu(title: "Hello", panelController: panelController),
                 Icon(Icons.bookmark),
