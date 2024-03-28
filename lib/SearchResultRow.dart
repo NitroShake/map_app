@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:map_app/AddressInformationPage.dart';
 import 'package:map_app/AddressSearchResult.dart';
 import 'package:map_app/SystemManager.dart';
 
@@ -36,7 +37,7 @@ class SearchResultRow extends StatelessWidget {
           SystemManager().mapController.move(LatLng(details.lat, details.long), min(SystemManager().mapController.camera.zoom, 15), offset: const Offset(0, -100));
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => Test()),
+            MaterialPageRoute(builder: (context) => AddressInformationPage(title: "Location Details", details: details,)),
           );
         }, 
         style: optionStyle,
@@ -48,15 +49,6 @@ class SearchResultRow extends StatelessWidget {
           ],
         ),
       )
-    );
-  }
-}
-
-class Test extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [OutlinedButton(onPressed: Navigator.of(context).pop, child: const Text("Back"))],
     );
   }
 }

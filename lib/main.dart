@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:map_app/SystemManager.dart';
@@ -84,7 +83,9 @@ class _MyHomePageState extends State<MyHomePage> {
     if (response.statusCode == 200) {
       Map<String, dynamic> map = json.decode(response.body);
 
-      route = MapRoute.fromJson(map);
+      setState(() {
+        route = MapRoute.fromJson(map); 
+      });
     }
   }
 
@@ -99,6 +100,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
     positionStream = Geolocator.getPositionStream(locationSettings: locationSettings).listen(
       (Position? position) {
+        createNewRoute(position!.latitude, position!.longitude, 50.844770, -0.775550);
         setState(() {
           userPosition = LatLng(position == null ? 0 : position.latitude, position == null ? 0 : position.longitude);   
         });
@@ -132,7 +134,9 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           children: [
             tileLayer,
-            MarkerLayer(markers: [Marker(point: userPosition, width: 30, height: 30, child: const Center(child: Icon(Icons.location_on)))])
+            MarkerLayer(markers: [Marker(point: userPosition, width: 30, height: 30, child: const Center(child: Icon(Icons.location_on)))]),
+            MarkerLayer(markers: (route != null ? route!.test : [])),
+            PolylineLayer(polylines: [(route != null ? Polyline(points: route!.pathPoints, color: Colors.blue) : Polyline(points: []))])
           ],
         ),
         SlidingUpPanel(
