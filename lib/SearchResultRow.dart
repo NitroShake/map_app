@@ -1,8 +1,6 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:map_app/AddressInformationPage.dart';
 import 'package:map_app/AddressSearchResult.dart';
@@ -44,8 +42,8 @@ class SearchResultRow extends StatelessWidget {
         child: Align(alignment: Alignment.centerLeft, child: Column( 
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(assembleDetails([details.houseNumber != null ? details.houseNumber! + " " + details.street! : details.name, details.city ?? details.county]), textScaler: const TextScaler.linear(1.15)),
-            Text(assembleDetails([details.postcode, details.state, details.country, details.type, details.osmValue]), textScaler: const TextScaler.linear(0.85)),
+            Text(assembleDetails([(details.houseNumber != null && details.street != null) ? details.houseNumber! + " " + details.street! : details.name, details.city ?? details.county]), textScaler: const TextScaler.linear(1.15)),
+            Text(assembleDetails([details.postcode, details.county, details.state, details.country, details.osmValue]), textScaler: const TextScaler.linear(0.85)),
           ],
         ),
       )

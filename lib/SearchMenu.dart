@@ -1,13 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:map_app/SystemManager.dart';
 
 import 'SearchResultRow.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:map_app/AddressSearchResult.dart';
-import 'package:sliding_up_panel/sliding_up_panel.dart';
 
 class SearchMenu extends StatefulWidget {
   const SearchMenu({super.key, required this.title});
