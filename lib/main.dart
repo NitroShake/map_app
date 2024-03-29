@@ -62,7 +62,8 @@ class _MyHomePageState extends State<MyHomePage> {
   late StreamSubscription<Position> positionStream;
   late Timer timer;
 
-  final LocationSettings locationSettings = const LocationSettings(
+  final AndroidSettings locationSettings = AndroidSettings(
+    intervalDuration: Duration(milliseconds: 500),
     accuracy: LocationAccuracy.bestForNavigation,
     distanceFilter: 0,
   );
@@ -89,6 +90,13 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  void destroyRoute() {
+    route = null;
+    setState(() {
+      
+    });
+  }
+
   void updatePosition() async {
     var perm = await Geolocator.checkPermission();
     print(perm);
@@ -98,10 +106,14 @@ class _MyHomePageState extends State<MyHomePage> {
       print("e");
       perm = await Geolocator.checkPermission();
     }
+    var position2 = await Geolocator.getCurrentPosition();
+    createNewRoute(position2.latitude, position2.longitude, 50.844770, -0.775550);
     positionStream = Geolocator.getPositionStream(locationSettings: locationSettings).listen(
       (Position? position) {
-        createNewRoute(position!.latitude, position!.longitude, 50.844770, -0.775550);
         setState(() {
+          if (position != null) {
+            route?.update(LatLng(position.latitude, position.longitude));
+          }
           userPosition = LatLng(position == null ? 0 : position.latitude, position == null ? 0 : position.longitude);   
         });
       print("${position?.latitude}, ${position?.longitude}");
@@ -139,12 +151,19 @@ class _MyHomePageState extends State<MyHomePage> {
             PolylineLayer(polylines: [(route != null ? Polyline(points: route!.pathPoints, color: Colors.blue) : Polyline(points: []))])
           ],
         ),
+        
+        Container(height: MediaQuery.of(context).size.height - 300, width: MediaQuery.of(context).size.width, child: Text("eeeee"), alignment: Alignment.bottomRight,),
         SlidingUpPanel(
           controller: panelController,
+          minHeight: 53,
+          maxHeight: 500,
+          padding: EdgeInsets.all(2),
           onPanelClosed: () {FocusManager.instance.primaryFocus?.unfocus();},
           panel: DefaultTabController(length: 3, child: Column ( 
             children: [
-              const Material(child: TabBar(tabs: [
+              Material(child: TabBar(
+                onTap: (value) => {panelController.open()},
+                tabs: const [
                 Tab(icon: Icon(Icons.search)),
                 Tab(icon: Icon(Icons.bookmark),),
                 Tab(icon: Icon(Icons.settings),),
