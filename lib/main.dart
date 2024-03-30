@@ -55,6 +55,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final PanelController panelController = PanelController();
   final MapController mapController = MapController();
   final GlobalKey<NavigatorState> searchKey = GlobalKey<NavigatorState>();
+  final GlobalKey<NavigatorState> panelKey = GlobalKey<NavigatorState>();
 
 
   List<SearchResultRow> searchResults = List.empty(growable: true);
@@ -93,7 +94,6 @@ class _MyHomePageState extends State<MyHomePage> {
   void destroyRoute() {
     route = null;
     setState(() {
-      
     });
   }
 
@@ -128,6 +128,7 @@ class _MyHomePageState extends State<MyHomePage> {
     //timer = Timer.periodic(Duration(seconds: 5), (Timer t) => backgroundUpdate());
     SystemManager().mainPanelController = panelController;
     SystemManager().mapController = mapController;
+    SystemManager().route = route as Route;
     Timer.run(() {updatePosition();});
   }
 

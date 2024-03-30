@@ -11,7 +11,7 @@ import 'package:geolocator/geolocator.dart';
 class SystemManager {
   late PanelController mainPanelController;
   late MapController mapController;
-  late Route route;
+  late Route? route;
 
   SystemManager._privateConstructor();
 
@@ -27,5 +27,9 @@ class SystemManager {
 
   MapController getMapController() {
     return mapController;
+  }
+
+  void clearRoute() {
+    route = null;
   }
 }

@@ -70,8 +70,6 @@ class MapRoute {
         }
       }
 
-      
-
       return MapRoute(
         pathPoints: pathPoints,
         checkpoints: checkpoints,
