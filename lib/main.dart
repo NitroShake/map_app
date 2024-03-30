@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:map_app/MainMenu.dart';
 import 'package:map_app/SystemManager.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -48,13 +49,12 @@ class MyHomePage extends StatefulWidget {
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<MyHomePage> createState() => MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class MyHomePageState extends State<MyHomePage> {
   final PanelController panelController = PanelController();
   final MapController mapController = MapController();
-  final GlobalKey<NavigatorState> searchKey = GlobalKey<NavigatorState>();
   final GlobalKey<NavigatorState> panelKey = GlobalKey<NavigatorState>();
 
 
@@ -126,9 +126,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     //timer = Timer.periodic(Duration(seconds: 5), (Timer t) => backgroundUpdate());
-    SystemManager().mainPanelController = panelController;
-    SystemManager().mapController = mapController;
-    SystemManager().route = route as Route;
+    SystemManager().mainPage = this;
     Timer.run(() {updatePosition();});
   }
 
@@ -160,25 +158,9 @@ class _MyHomePageState extends State<MyHomePage> {
           maxHeight: 500,
           padding: EdgeInsets.all(2),
           onPanelClosed: () {FocusManager.instance.primaryFocus?.unfocus();},
-          panel: DefaultTabController(length: 3, child: Column ( 
-            children: [
-              Material(child: TabBar(
-                onTap: (value) => {panelController.open()},
-                tabs: const [
-                Tab(icon: Icon(Icons.search)),
-                Tab(icon: Icon(Icons.bookmark),),
-                Tab(icon: Icon(Icons.settings),),
-              ])),
-              Expanded(child: Material(child: TabBarView(children: [
-                Navigator(
-                  key: searchKey,
-                  onGenerateRoute: (route) => MaterialPageRoute(settings: route, builder: (context) => SearchMenu(title: "Search")),
-                ),
-                //SearchMenu(title: "Hello", panelController: panelController),
-                Icon(Icons.bookmark),
-                Icon(Icons.settings),
-              ]),))
-            ],)
+          panel: Navigator(
+            key: panelKey,
+            onGenerateRoute: (route) => MaterialPageRoute(settings: route, builder: (context) => const MainMenu()),
           ),
         )
       ],

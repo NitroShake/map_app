@@ -41,7 +41,7 @@ class _SearchMenuState extends State<SearchMenu> {
       setState(() {  
         searchResults.add(
           TextField(
-          onTap: () { SystemManager().mainPanelController.open(); },
+          onTap: () { SystemManager().getMainPanelController().open(); },
           onSubmitted: searchAddresses,)
         );
         for (var entry in entries) {
@@ -55,7 +55,7 @@ class _SearchMenuState extends State<SearchMenu> {
     Timer.run(() => setState(() {  
         searchResults.add(
           TextField(
-          onTap: () { SystemManager().mainPanelController.open(); },
+          onTap: () { SystemManager().getMainPanelController().open(); },
           onSubmitted: searchAddresses,)
         );
       }

@@ -18,7 +18,7 @@ class RoutePage extends StatefulWidget {
 class _RoutePage extends State<RoutePage> {
   List<Widget> generateRouteWidgets() {
     List<Widget> list = List.empty(growable: true);
-    for (var i in (SystemManager().route as MapRoute).checkpoints) {
+    for (var i in (SystemManager().getRoute() as MapRoute).checkpoints) {
       list.add(RouteDetailRow(checkpoint: i));
     }
     return list;
@@ -29,7 +29,7 @@ class _RoutePage extends State<RoutePage> {
     return SlidingUpPanel(
       panel: Column(children: 
         List<Widget>.from([
-          FilledButton(onPressed: () => {SystemManager().clearRoute()}, child: Text("Delete Route"))
+          FilledButton(onPressed: () => {SystemManager().clearRoute()}, child: Text("Delete Route")),
           FilledButton(onPressed: () => {SystemManager().clearRoute()}, child: Text("Delete Route"))
         ])
         + generateRouteWidgets(),
