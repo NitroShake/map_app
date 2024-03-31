@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:map_app/MainMenu.dart';
+import 'package:map_app/RoutePage.dart';
 import 'package:map_app/SystemManager.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -125,9 +126,17 @@ class MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
+    buttonOffset = calculateButtonOffset(0);
     //timer = Timer.periodic(Duration(seconds: 5), (Timer t) => backgroundUpdate());
     SystemManager().mainPage = this;
     Timer.run(() {updatePosition();});
+  }
+
+  double panelMinSize = 53;
+  double panelMaxSize = 500;
+  double buttonOffset = 0;
+  double calculateButtonOffset(double position) {
+    return panelMinSize + ((panelMaxSize - panelMinSize) * position);
   }
 
   @override
@@ -151,11 +160,29 @@ class MyHomePageState extends State<MyHomePage> {
           ],
         ),
         
-        Container(height: MediaQuery.of(context).size.height - 300, width: MediaQuery.of(context).size.width, child: Text("eeeee"), alignment: Alignment.bottomRight,),
+        Container(
+          height: MediaQuery.of(context).size.height - buttonOffset, width: MediaQuery.of(context).size.width, 
+          alignment: Alignment.bottomRight,
+          child: ElevatedButton(child: Icon(Icons.route), 
+            onPressed: () {
+              if (!SystemManager().menuIsShowingRoute) {
+                panelKey.currentState!.push(MaterialPageRoute(builder: (context) => const RoutePage())); 
+                SystemManager().menuIsShowingRoute = true;
+              }
+              panelController.open();
+              },
+            style: ElevatedButton.styleFrom(
+              shape: CircleBorder(),
+              padding: EdgeInsets.all(10),
+            ),
+          ), 
+        ),
+
         SlidingUpPanel(
           controller: panelController,
-          minHeight: 53,
-          maxHeight: 500,
+          onPanelSlide: (position) {buttonOffset = calculateButtonOffset(position); setState(() {});},
+          minHeight: panelMinSize,
+          maxHeight: panelMaxSize,
           padding: EdgeInsets.all(2),
           onPanelClosed: () {FocusManager.instance.primaryFocus?.unfocus();},
           panel: Navigator(

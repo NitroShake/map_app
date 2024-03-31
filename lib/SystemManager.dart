@@ -14,6 +14,7 @@ import 'package:geolocator/geolocator.dart';
 class SystemManager {
   late MyHomePageState mainPage;
   late MainMenuState mainMenu;
+  bool menuIsShowingRoute = false;
 
   SystemManager._privateConstructor();
 

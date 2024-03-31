@@ -63,6 +63,7 @@ class MapRoute {
           modifier: checkpoint['maneuver']['modifier'], 
           modifierType: checkpoint['maneuver']['type'], 
           position: LatLng(checkpoint['maneuver']['location'][1], checkpoint['maneuver']['location'][0]),
+          locationName: checkpoint['name'],
           visualTest: Marker(child: Icon(Icons.location_on_rounded), point: LatLng(checkpoint['maneuver']['location'][1], checkpoint['maneuver']['location'][0]))),
         );
         for (List<dynamic> pathPoint in checkpoint['geometry']['coordinates']) {
@@ -85,6 +86,7 @@ class RouteCheckpoint {
   String? modifier;
   String modifierType;
   LatLng position;
+  String locationName;
   Marker visualTest;
 
   RouteCheckpoint({
@@ -92,6 +94,7 @@ class RouteCheckpoint {
     required this.modifier,
     required this.modifierType,
     required this.position,
+    required this.locationName,
     required this.visualTest
   });
 }
