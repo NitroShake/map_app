@@ -86,6 +86,7 @@ class _AddressInformationPage extends State<AddressInformationPage> {
             taDetails = Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                Text("TripAdvisor Results for ${result!.name}"),
                 Row(children: createStarRating(details.rating) + [Text("${details.numReviews} reviews")]),
                 Text(details.description ?? ""),
                 details.websiteLink != null ? Text("Read More: ${details.websiteLink}") : Container(),
@@ -118,7 +119,7 @@ class _AddressInformationPage extends State<AddressInformationPage> {
                   children: [
                     Row(children: createStarRating(review.rating) + [Text(review.date ?? "")],),
                     Text(review.text),
-                    Text("${review.helpfulVotes} ${review.helpfulVotes == 0 ? "person" : "people"} found this helpful")
+                    Text("${review.helpfulVotes} ${review.helpfulVotes == 1 ? "person" : "people"} found this helpful")
                   ]
                 )
               );          

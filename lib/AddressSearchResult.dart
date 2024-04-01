@@ -1,4 +1,5 @@
 class AddressSearchResult {
+  final int id;
   final double lat;
   final double long;
   final String classification;
@@ -17,6 +18,7 @@ class AddressSearchResult {
   final String? country;
 
   const AddressSearchResult({
+    required this.id,
     required this.lat,
     required this.long,
     required this.classification,
@@ -38,6 +40,7 @@ class AddressSearchResult {
   factory AddressSearchResult.fromJson(Map<String, dynamic> json) {
     try {
       return AddressSearchResult(
+        id: json["properties"]["geocoding"]['place_id'],
         lat: json["geometry"]["coordinates"][1], 
         long: json["geometry"]["coordinates"][0], 
         classification: json["properties"]["geocoding"]['type'], 

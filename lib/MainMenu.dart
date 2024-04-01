@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:map_app/SearchMenu.dart';
+import 'package:map_app/SettingsMenu.dart';
 import 'package:map_app/SystemManager.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 
@@ -34,7 +35,7 @@ class MainMenuState extends State<MainMenu> {
           ),
           //SearchMenu(title: "Hello", panelController: panelController),
           Icon(Icons.bookmark),
-          Icon(Icons.settings),
+          SettingsMenu(),
         ]),))
       ],)
     );
