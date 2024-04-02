@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
@@ -7,6 +8,8 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:http/http.dart' as http;
 import 'package:map_app/AddressSearchResult.dart';
 import 'package:map_app/ApiKeys.dart';
+import 'package:map_app/ServerManager.dart';
+import 'package:map_app/SystemManager.dart';
 import 'package:map_app/TripAdvisorAPI.dart';
 
 class AddressInformationPage extends StatefulWidget {
@@ -63,7 +66,7 @@ class _AddressInformationPage extends State<AddressInformationPage> {
 
   void getTripAdvisorInfo() async {
     String searchQuery = '${details.name} ${details.street ?? ""}';
-    final searchResponse = await http.get(Uri.parse("https://api.content.tripadvisor.com/api/v1/location/search?key=${ApiKeys().tripAdvisorKey}&latLong=${details.lat},${details.long}&radius=5&radiusUnit=km&searchQuery=${Uri.encodeComponent(searchQuery)}"));
+    final searchResponse = await http.get(Uri.parse("https://api.content.tripadvisor.com/api/v1/location/search?key=${ApiKeys().tripAdvisorKey}&latLong=${details.lat},${details.lon}&radius=5&radiusUnit=km&searchQuery=${Uri.encodeComponent(searchQuery)}"));
     if (searchResponse.statusCode == 200) {
       print("11111");
       Iterable i = json.decode(searchResponse.body)['data'];
@@ -131,7 +134,12 @@ class _AddressInformationPage extends State<AddressInformationPage> {
     }
   }
 
-
+  IconData bookmarkIcon = Icons.bookmark_outline;
+  void addBookmark() async {
+    if (await ServerManager().addBookmark(details.id, details.lat, details.lon, details.name)) {
+      bookmarkIcon = Icons.bookmark;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -158,7 +166,7 @@ class _AddressInformationPage extends State<AddressInformationPage> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    FilledButton(onPressed: () => {}, style: buttonStyle, child: const Icon(Icons.bookmark_outline)),
+                    FilledButton(onPressed: () => {addBookmark()}, style: buttonStyle, child: Icon(bookmarkIcon)),
                     Row(children: [
                       FilledButton(onPressed: () => {}, style: buttonStyle, child: const Row(children: [Icon(Icons.route), Icon(Icons.directions_car)])),
                       FilledButton(onPressed: () => {}, style: buttonStyle, child: const Row(children: [Icon(Icons.route), Icon(Icons.directions_walk)])),

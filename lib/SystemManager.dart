@@ -39,4 +39,6 @@ class SystemManager {
   void clearRoute() {
     mainPage.route = null;
   }
+
+  void updateBookmarks() {}
 }

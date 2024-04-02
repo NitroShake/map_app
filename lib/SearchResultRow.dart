@@ -32,7 +32,7 @@ class SearchResultRow extends StatelessWidget {
   Widget build(BuildContext context) {
       return OutlinedButton(
         onPressed: () {
-          SystemManager().getMapController().move(LatLng(details.lat, details.long), min(SystemManager().getMapController().camera.zoom, 15), offset: const Offset(0, -100));
+          SystemManager().getMapController().move(LatLng(details.lat, details.lon), min(SystemManager().getMapController().camera.zoom, 15), offset: const Offset(0, -100));
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => AddressInformationPage(title: "Location Details", details: details,)),

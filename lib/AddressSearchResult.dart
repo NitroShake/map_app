@@ -1,7 +1,7 @@
 class AddressSearchResult {
   final int id;
   final double lat;
-  final double long;
+  final double lon;
   final String classification;
   final String type;
   final String osmkey;
@@ -20,7 +20,7 @@ class AddressSearchResult {
   const AddressSearchResult({
     required this.id,
     required this.lat,
-    required this.long,
+    required this.lon,
     required this.classification,
     required this.type,
     required this.osmkey,
@@ -42,7 +42,7 @@ class AddressSearchResult {
       return AddressSearchResult(
         id: json["properties"]["geocoding"]['place_id'],
         lat: json["geometry"]["coordinates"][1], 
-        long: json["geometry"]["coordinates"][0], 
+        lon: json["geometry"]["coordinates"][0], 
         classification: json["properties"]["geocoding"]['type'], 
         type: json["properties"]["geocoding"]['type'], 
         osmkey: json["properties"]["geocoding"]['osm_key'], 

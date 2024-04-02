@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:map_app/Authenticator.dart';
+import 'package:map_app/ServerManager.dart';
 
 class SettingsMenu extends StatefulWidget {
   const SettingsMenu({super.key});
@@ -13,7 +13,7 @@ class SettingsMenuState extends State<SettingsMenu> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        FilledButton(onPressed: () {Authenticator().googleSignIn();}, child: const Icon(Icons.signal_wifi_0_bar))
+        FilledButton(onPressed: () {ServerManager().googleSignIn();}, child: const Icon(Icons.signal_wifi_0_bar))
 
       ],
     );
