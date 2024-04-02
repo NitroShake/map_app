@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:map_app/LocationDetails.dart';
@@ -22,36 +23,20 @@ class BookmarkMenuState extends State<BookmarkMenu> with AutomaticKeepAliveClien
 
   BookmarkMenuState() {
     SystemManager().bookmarkMenu = this;
+    Timer.run(() {ServerManager().loadBookmarks();});
   }
 
-  void loadBookmarks() async {
+  void updateBookmarkList(List<LocationDetails> list) {
     List<SearchResultRow> newBookmarks = List.empty(growable: true);
-    if (ServerManager().idTokenPost != null) {
-      final searchResponse = await http.post(Uri.parse("http://130.162.169.225/getbookmarks.php"), headers: ServerManager().idTokenPost, body: ServerManager().idTokenPost);
-      if (searchResponse.statusCode == 200) {
-        Iterable iter = json.decode(searchResponse.body);
-        String lookupParams = "";
-        for (Map<String, dynamic> i in iter) {
-          lookupParams += "${i['osm_type'][0].toUpperCase()}${i['osm_id']},";
-        }
-
-        final lookupResponse = await http.get(Uri.parse("https://nominatim.openstreetmap.org/lookup?format=geocodejson&addressdetails=1&osm_ids=${lookupParams}"));
-        if (lookupResponse.statusCode == 200) {
-          Iterable iter = json.decode(lookupResponse.body)['features'];
-
-          List<LocationDetails> results = List<LocationDetails>.from(iter.map((e) => LocationDetails.fromJson(e)));
-          for (var i in results) {
-            newBookmarks.add(SearchResultRow(details: i));
-          }
-          setState(() {
-            bookmarkWidgets = newBookmarks;   
-          });
-        }
-      }
+    for (var i in list) {
+      newBookmarks.add(SearchResultRow(details: i));
     }
-  } 
+    setState(() {
+      bookmarkWidgets = newBookmarks;   
+    });
+  }
 
-  late List<Widget> refreshButton = [FilledButton(onPressed: () {if (ServerManager().idTokenPost != null) {loadBookmarks();}}, child: Text("load"))];
+  late List<Widget> refreshButton = [FilledButton(onPressed: () {if (ServerManager().idTokenPost != null) {ServerManager().loadBookmarks();}}, child: Text("load"))];
   
   @override
   Widget build(BuildContext context) {

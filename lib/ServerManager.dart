@@ -3,9 +3,13 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:map_app/LocationDetails.dart';
+import 'package:map_app/SearchResultRow.dart';
+import 'package:map_app/SystemManager.dart';
 
 class ServerManager {
   late Map<String, String>? idTokenPost = null;
+  late List<LocationDetails> bookmarks = List.empty(growable: true);
   ServerManager._privateConstructor();
 
   static ServerManager manager = ServerManager._privateConstructor();
@@ -19,15 +23,32 @@ class ServerManager {
     if (user != null) {
       final GoogleSignInAuthentication auth = await user.authentication;
       idTokenPost = Map<String, String>.from({"id_token": auth.idToken});
-
-      //Map<String, String> headers = Map<String, String>.from({"id_token": auth.idToken, "access_token": auth.accessToken});
-
-      //var response = await http.post(Uri.parse("http://130.162.169.225/test.php"), headers: headers, body: headers);
-      //var test = response.body;
-      //print(test);
-      //print(auth.accessToken);
+      loadBookmarks();
     }
   }
+
+  void loadBookmarks() async {
+    List<SearchResultRow> newBookmarks = List.empty(growable: true);
+    if (ServerManager().idTokenPost != null) {
+      final searchResponse = await http.post(Uri.parse("http://130.162.169.225/getbookmarks.php"), headers: ServerManager().idTokenPost, body: ServerManager().idTokenPost);
+      if (searchResponse.statusCode == 200) {
+        Iterable iter = json.decode(searchResponse.body);
+        String lookupParams = "";
+        for (Map<String, dynamic> i in iter) {
+          lookupParams += "${i['osm_type'][0].toUpperCase()}${i['osm_id']},";
+        }
+
+        final lookupResponse = await http.get(Uri.parse("https://nominatim.openstreetmap.org/lookup?format=geocodejson&addressdetails=1&osm_ids=${lookupParams}"));
+        if (lookupResponse.statusCode == 200) {
+          Iterable iter = json.decode(lookupResponse.body)['features'];
+
+          List<LocationDetails> results = List<LocationDetails>.from(iter.map((e) => LocationDetails.fromJson(e)));
+          bookmarks = results;
+          SystemManager().updateBookmarkUI(bookmarks);
+        }
+      }
+    }
+  } 
 
   Future<bool> addBookmark(int osmId, String osmType) async {
     final searchResponse = await http.post(Uri.parse("http://130.162.169.225/createbookmark.php?osm_id=${Uri.encodeComponent("${osmId}")}&osm_type=${Uri.encodeComponent(osmType)}"), headers: idTokenPost, body: idTokenPost);

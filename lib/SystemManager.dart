@@ -8,6 +8,7 @@ import 'package:map_app/LocationDetails.dart';
 import 'package:map_app/MainMenu.dart';
 import 'package:map_app/MapRoute.dart';
 import 'package:map_app/RoutePage.dart';
+import 'package:map_app/ServerManager.dart';
 import 'package:map_app/main.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -17,7 +18,7 @@ import 'package:geolocator/geolocator.dart';
 class SystemManager {
   late MyHomePageState mainPage;
   late MainMenuState mainMenu;
-  late BookmarkMenuState bookmarkMenu;
+  late BookmarkMenuState? bookmarkMenu = null;
   RoutePageState? routePage;
   bool menuIsShowingRoute = false;
 
@@ -61,7 +62,9 @@ class SystemManager {
     mainPage.refresh();
   }
 
-  List<LocationDetails> getBookmarkedLocations() {
-    return bookmarkMenu.bookmarkWidgets.map((e) => e.details).toList();
+  void updateBookmarkUI(List<LocationDetails> list) {
+    if (bookmarkMenu != null) {
+      bookmarkMenu!.updateBookmarkList(list);
+    }
   }
 }

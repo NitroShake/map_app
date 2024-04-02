@@ -39,7 +39,7 @@ class _AddressInformationPage extends State<AddressInformationPage> {
 
   _AddressInformationPage({required this.details}) {
     getTripAdvisorInfo();
-    for (LocationDetails i in SystemManager().getBookmarkedLocations()) {
+    for (LocationDetails i in ServerManager().bookmarks) {
       if (i.isSameAs(details)) {
         isBookmarked = true;
         Timer.run(() {setState(() {
