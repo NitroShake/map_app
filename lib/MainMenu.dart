@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:map_app/BookmarkMenu.dart';
 import 'package:map_app/SearchMenu.dart';
 import 'package:map_app/SettingsMenu.dart';
 import 'package:map_app/SystemManager.dart';
@@ -13,6 +14,7 @@ class MainMenu extends StatefulWidget {
 
 class MainMenuState extends State<MainMenu> {
   final GlobalKey<NavigatorState> searchKey = GlobalKey<NavigatorState>();
+  final GlobalKey<NavigatorState> bookmarkKey = GlobalKey<NavigatorState>();
 
   MainMenuState() {
     SystemManager().mainMenu = this;
@@ -33,8 +35,10 @@ class MainMenuState extends State<MainMenu> {
             key: searchKey,
             onGenerateRoute: (route) => MaterialPageRoute(settings: route, builder: (context) => SearchMenu(title: "Search")),
           ),
-          //SearchMenu(title: "Hello", panelController: panelController),
-          Icon(Icons.bookmark),
+          Navigator(
+            key: bookmarkKey,
+            onGenerateRoute: (route) => MaterialPageRoute(settings: route, builder: (context) => BookmarkMenu()),
+          ),
           SettingsMenu(),
         ]),))
       ],)

@@ -19,7 +19,7 @@ class MapRoute {
     required this.test,
   });
 
-  void update(LatLng userPosition) {
+  void update(LatLng userPosition) async {
     Distance distance = const Distance();
     int closestIndex = 0;
     double distanceToBeat = distance(userPosition, pathPoints[0]);
@@ -46,7 +46,10 @@ class MapRoute {
       if (lastKnownUserLocation != null && distance(pathPoints[0], lastKnownUserLocation!) < distance(userPosition, pathPoints[0])) {
         positionRouteMismatchCount++;
         if (positionRouteMismatchCount > 5) {
-          //recalculate route
+          MapRoute? newRoute = await MapRoute.createNewRoute(SystemManager().getUserPosition().latitude, SystemManager().getUserPosition().longitude, checkpoints[checkpoints.length - 1].position.latitude, checkpoints[checkpoints.length - 1].position.longitude);
+          if (newRoute != null) {
+            SystemManager().setRoute(newRoute);
+          }
         }
       }
     }
@@ -64,7 +67,9 @@ class MapRoute {
           modifierType: checkpoint['maneuver']['type'], 
           position: LatLng(checkpoint['maneuver']['location'][1], checkpoint['maneuver']['location'][0]),
           locationName: checkpoint['name'],
-          visualTest: Marker(child: Icon(Icons.location_on_rounded), point: LatLng(checkpoint['maneuver']['location'][1], checkpoint['maneuver']['location'][0]))),
+          visualTest: Marker(child: Icon(Icons.location_on_rounded), point: LatLng(checkpoint['maneuver']['location'][1], checkpoint['maneuver']['location'][0])),
+          roundaboutExit: checkpoint['maneuver']['exit'],
+          ),
         );
         for (List<dynamic> pathPoint in checkpoint['geometry']['coordinates']) {
           pathPoints.add(LatLng(pathPoint[1], pathPoint[0]));
@@ -79,6 +84,21 @@ class MapRoute {
     }
     on Exception catch (e) {throw Exception("JSON invalid. ${e.toString()}");}
   }
+
+
+  static Future<MapRoute?> createNewRoute(double latStart, double lonStart, double latEnd, double lonEnd) async {
+    final response = await http
+      .get(Uri.parse('https://router.project-osrm.org/route/v1/driving/${lonStart},${latStart};${lonEnd},${latEnd}?overview=false&steps=true&geometries=geojson&annotations=false'));
+    
+    if (response.statusCode == 200) {
+      Map<String, dynamic> map = json.decode(response.body);
+
+      return MapRoute.fromJson(map); 
+    }
+    else {
+      return null;
+    }
+  }
 }
 
 class RouteCheckpoint {
@@ -87,6 +107,7 @@ class RouteCheckpoint {
   String modifierType;
   LatLng position;
   String locationName;
+  int? roundaboutExit;
   Marker visualTest;
 
   RouteCheckpoint({
@@ -95,6 +116,7 @@ class RouteCheckpoint {
     required this.modifierType,
     required this.position,
     required this.locationName,
-    required this.visualTest
+    required this.visualTest,
+    required this.roundaboutExit
   });
 }

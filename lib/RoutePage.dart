@@ -10,10 +10,19 @@ class RoutePage extends StatefulWidget {
   const RoutePage({super.key});
 
   @override
-  State<RoutePage> createState() => _RoutePage();
+  State<RoutePage> createState() => RoutePageState();
 }
 
-class _RoutePage extends State<RoutePage> {
+class RoutePageState extends State<RoutePage> {
+  @override void dispose() {
+    SystemManager().routePage = null;
+    super.dispose();
+  }
+
+  RoutePageState() {
+    SystemManager().routePage = this;
+  }
+
   List<Widget> generateRouteWidgets() {
     List<Widget> list = List.empty(growable: true);
     if (SystemManager().getRoute() != null) {
@@ -22,6 +31,10 @@ class _RoutePage extends State<RoutePage> {
       }
     }
     return list;
+  }
+
+  void refresh() {
+    setState(() { });
   }
 
   @override

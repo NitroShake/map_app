@@ -3,17 +3,19 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:map_app/AddressInformationPage.dart';
-import 'package:map_app/AddressSearchResult.dart';
+import 'package:map_app/LocationDetails.dart';
 import 'package:map_app/SystemManager.dart';
 
 class SearchResultRow extends StatelessWidget {
   
-  const SearchResultRow({
+  SearchResultRow({
     required this.details,
-    required this.optionStyle,
   });
-  final AddressSearchResult details;
-  final ButtonStyle optionStyle;
+  final LocationDetails details;
+  final ButtonStyle rowButtonStyle = OutlinedButton.styleFrom(
+    shape: const LinearBorder(top: LinearBorderEdge()),
+    padding: EdgeInsets.all(10)
+  );
 
   String assembleDetails(List<String?> components) {
     String string = "";
@@ -38,7 +40,7 @@ class SearchResultRow extends StatelessWidget {
             MaterialPageRoute(builder: (context) => AddressInformationPage(title: "Location Details", details: details,)),
           );
         }, 
-        style: optionStyle,
+        style: rowButtonStyle,
         child: Align(alignment: Alignment.centerLeft, child: Column( 
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

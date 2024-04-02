@@ -1,11 +1,13 @@
-class AddressSearchResult {
+class LocationDetails {
   final int id;
+  final int osmId;
   final double lat;
   final double lon;
   final String classification;
   final String type;
   final String osmkey;
   final String osmValue;
+  final String osmType;
   final String name;
   final String? houseNumber;
   final String? street;
@@ -17,7 +19,7 @@ class AddressSearchResult {
   final String? state;
   final String? country;
 
-  const AddressSearchResult({
+  const LocationDetails({
     required this.id,
     required this.lat,
     required this.lon,
@@ -34,12 +36,14 @@ class AddressSearchResult {
     required this.city, 
     required this.county, 
     required this.state, 
-    required this.country
+    required this.country,
+    required this.osmId,
+    required this.osmType
   });
 
-  factory AddressSearchResult.fromJson(Map<String, dynamic> json) {
+  factory LocationDetails.fromJson(Map<String, dynamic> json) {
     try {
-      return AddressSearchResult(
+      return LocationDetails(
         id: json["properties"]["geocoding"]['place_id'],
         lat: json["geometry"]["coordinates"][1], 
         lon: json["geometry"]["coordinates"][0], 
@@ -56,9 +60,20 @@ class AddressSearchResult {
         city: json["properties"]["geocoding"]['city'],
         county: json["properties"]["geocoding"]['county'],
         state: json["properties"]["geocoding"]['state'],
-        country: json["properties"]["geocoding"]['country']
+        country: json["properties"]["geocoding"]['country'],
+        osmId: json['properties']['geocoding']['osm_id'],
+        osmType: json['properties']['geocoding']['osm_type']
       );
     }
     on Exception catch (e) {throw Exception("JSON invalid. ${e.toString()}");}
+  }
+
+  bool isSameAs(LocationDetails details) {
+    if (osmValue == details.osmValue && osmId == details.osmId) {
+      return true;
+    }
+    else {
+      return false;
+    }
   }
 }

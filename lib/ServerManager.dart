@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:google_sign_in/google_sign_in.dart';
 
 class ServerManager {
-  late Map<String, String>? idTokenPost;
+  late Map<String, String>? idTokenPost = null;
   ServerManager._privateConstructor();
 
   static ServerManager manager = ServerManager._privateConstructor();
@@ -29,8 +29,8 @@ class ServerManager {
     }
   }
 
-  Future<bool> addBookmark(int locationId, double lat, double lon, String name) async {
-    final searchResponse = await http.post(Uri.parse("http://130.162.169.225/createbookmark.php?locationid=${Uri.encodeComponent("${locationId}")}&lat=${Uri.encodeComponent("${lat}")}&lon=${Uri.encodeComponent("${lon}")}&name=${Uri.encodeComponent(name)}"), headers: idTokenPost, body: idTokenPost);
+  Future<bool> addBookmark(int osmId, String osmType) async {
+    final searchResponse = await http.post(Uri.parse("http://130.162.169.225/createbookmark.php?osm_id=${Uri.encodeComponent("${osmId}")}&osm_type=${Uri.encodeComponent(osmType)}"), headers: idTokenPost, body: idTokenPost);
     if (searchResponse.statusCode == 200) {return true;} else {return false;}
   }
 }

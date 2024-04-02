@@ -11,7 +11,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 
 import 'SearchResultRow.dart';
-import 'AddressSearchResult.dart';
+import 'LocationDetails.dart';
 import 'SearchMenu.dart';
 import 'MapRoute.dart';
 void main() {
@@ -69,28 +69,12 @@ class MyHomePageState extends State<MyHomePage> {
     accuracy: LocationAccuracy.bestForNavigation,
     distanceFilter: 0,
   );
-  final ButtonStyle menuOptionButtonStyle = OutlinedButton.styleFrom(
-    shape: const LinearBorder(top: LinearBorderEdge()),
-    padding: EdgeInsets.all(10)
-  );
   final TileLayer tileLayer = TileLayer(
     urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
     userAgentPackageName: 'com.example.app',
   );
 
   MapRoute? route;
-  void createNewRoute(double latStart, double lonStart, double latEnd, double lonEnd) async {
-    final response = await http
-      .get(Uri.parse('https://router.project-osrm.org/route/v1/driving/${lonStart},${latStart};${lonEnd},${latEnd}?overview=false&steps=true&geometries=geojson&annotations=false'));
-    
-    if (response.statusCode == 200) {
-      Map<String, dynamic> map = json.decode(response.body);
-
-      setState(() {
-        route = MapRoute.fromJson(map); 
-      });
-    }
-  }
 
   void destroyRoute() {
     route = null;
@@ -98,17 +82,21 @@ class MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void refresh() {
+    setState(() { });
+  }
+
   void updatePosition() async {
     var perm = await Geolocator.checkPermission();
     print(perm);
     while (perm != LocationPermission.always && perm != LocationPermission.whileInUse) {
       await Geolocator.requestPermission();
-      await Future.delayed(const Duration(milliseconds: 1000));
+      await Future.delayed(const Duration(milliseconds: 250));
       print("e");
       perm = await Geolocator.checkPermission();
     }
     var position2 = await Geolocator.getCurrentPosition();
-    createNewRoute(position2.latitude, position2.longitude, 50.844770, -0.775550);
+    route = await MapRoute.createNewRoute(position2.latitude, position2.longitude, 50.844770, -0.775550);
     positionStream = Geolocator.getPositionStream(locationSettings: locationSettings).listen(
       (Position? position) {
         setState(() {
@@ -156,7 +144,7 @@ class MyHomePageState extends State<MyHomePage> {
             tileLayer,
             MarkerLayer(markers: [Marker(point: userPosition, width: 30, height: 30, child: const Center(child: Icon(Icons.location_on)))]),
             MarkerLayer(markers: (route != null ? route!.test : [])),
-            PolylineLayer(polylines: [(route != null ? Polyline(points: route!.pathPoints, color: Colors.blue) : Polyline(points: []))])
+            PolylineLayer(polylines: [(route != null ? Polyline(points: route!.pathPoints, color: Colors.blue, strokeWidth: 5) : Polyline(points: []))])
           ],
         ),
         
@@ -166,7 +154,7 @@ class MyHomePageState extends State<MyHomePage> {
           child: ElevatedButton(child: Icon(Icons.route), 
             onPressed: () {
               if (!SystemManager().menuIsShowingRoute) {
-                panelKey.currentState!.push(MaterialPageRoute(builder: (context) => const RoutePage())); 
+                panelKey.currentState!.push(MaterialPageRoute(builder: (context) => RoutePage())); 
                 SystemManager().menuIsShowingRoute = true;
               }
               panelController.open();

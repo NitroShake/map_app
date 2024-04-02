@@ -3,8 +3,11 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:map_app/BookmarkMenu.dart';
+import 'package:map_app/LocationDetails.dart';
 import 'package:map_app/MainMenu.dart';
 import 'package:map_app/MapRoute.dart';
+import 'package:map_app/RoutePage.dart';
 import 'package:map_app/main.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -14,6 +17,8 @@ import 'package:geolocator/geolocator.dart';
 class SystemManager {
   late MyHomePageState mainPage;
   late MainMenuState mainMenu;
+  late BookmarkMenuState bookmarkMenu;
+  RoutePageState? routePage;
   bool menuIsShowingRoute = false;
 
   SystemManager._privateConstructor();
@@ -36,9 +41,27 @@ class SystemManager {
     return mainPage.route;
   }
 
-  void clearRoute() {
-    mainPage.route = null;
+  LatLng getUserPosition() {
+    return mainPage.userPosition;
   }
 
-  void updateBookmarks() {}
+  void clearRoute() {
+    mainPage.route = null;
+    if (routePage != null) {
+      routePage?.refresh();
+    }
+    mainPage.refresh();
+  }
+
+  void setRoute(MapRoute? route) {
+    mainPage.route = route;
+    if (routePage != null) {
+      routePage?.refresh();
+    }
+    mainPage.refresh();
+  }
+
+  List<LocationDetails> getBookmarkedLocations() {
+    return bookmarkMenu.bookmarkWidgets.map((e) => e.details).toList();
+  }
 }

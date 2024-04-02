@@ -6,6 +6,10 @@ import 'package:latlong2/latlong.dart';
 import 'package:map_app/MapRoute.dart';
 
 class RouteDetailRow extends StatelessWidget {
+  final ButtonStyle menuOptionButtonStyle = OutlinedButton.styleFrom(
+    shape: const LinearBorder(top: LinearBorderEdge()),
+    padding: EdgeInsets.all(10)
+  );
   RouteCheckpoint checkpoint;
 
   RouteDetailRow({required this.checkpoint});

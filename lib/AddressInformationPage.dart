@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
@@ -6,14 +7,15 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:http/http.dart' as http;
-import 'package:map_app/AddressSearchResult.dart';
+import 'package:map_app/LocationDetails.dart';
 import 'package:map_app/ApiKeys.dart';
+import 'package:map_app/MapRoute.dart';
 import 'package:map_app/ServerManager.dart';
 import 'package:map_app/SystemManager.dart';
 import 'package:map_app/TripAdvisorAPI.dart';
 
 class AddressInformationPage extends StatefulWidget {
-  final AddressSearchResult details;
+  final LocationDetails details;
 
   const AddressInformationPage({super.key, required this.title, required this.details});
 
@@ -24,16 +26,34 @@ class AddressInformationPage extends StatefulWidget {
 }
 
 class _AddressInformationPage extends State<AddressInformationPage> {
-  AddressSearchResult details;
+  LocationDetails details;
   ButtonStyle buttonStyle = FilledButton.styleFrom(
     padding: EdgeInsets.zero
   );
-  _AddressInformationPage({required this.details}) {
-    getTripAdvisorInfo();
-  }
 
   Widget taDetails = Column();
   List<Widget> taReviews = List.empty(growable: true);
+  bool isDisposed = false;
+  bool isBookmarked = false;
+  IconData bookmarkIcon = Icons.bookmark_outline;
+
+  _AddressInformationPage({required this.details}) {
+    getTripAdvisorInfo();
+    for (LocationDetails i in SystemManager().getBookmarkedLocations()) {
+      if (i.isSameAs(details)) {
+        isBookmarked = true;
+        Timer.run(() {setState(() {
+          bookmarkIcon = Icons.bookmark;
+        });});
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    isDisposed = true;
+    super.dispose();
+  }
 
   String assembleDetails(List<String?> components) {
     String string = "";
@@ -85,17 +105,19 @@ class _AddressInformationPage extends State<AddressInformationPage> {
           print("222222");
           Map<String, dynamic> map = json.decode(detailResponse.body);
           TripAdvisorDetails details = TripAdvisorDetails.fromJson(map);
-          setState(() {
-            taDetails = Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("TripAdvisor Results for ${result!.name}"),
-                Row(children: createStarRating(details.rating) + [Text("${details.numReviews} reviews")]),
-                Text(details.description ?? ""),
-                details.websiteLink != null ? Text("Read More: ${details.websiteLink}") : Container(),
-              ],
-            );          
-          });
+          if (!isDisposed) {
+            setState(() {
+              taDetails = Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("TripAdvisor Results for ${result!.name}"),
+                  Row(children: createStarRating(details.rating) + [Text("${details.numReviews} reviews")]),
+                  Text(details.description ?? ""),
+                  details.websiteLink != null ? Text("Read More: ${details.websiteLink}") : Container(),
+                ],
+              );          
+            });
+          }
         }
         else {
           Map<String, dynamic> map = json.decode(detailResponse.body);
@@ -104,29 +126,26 @@ class _AddressInformationPage extends State<AddressInformationPage> {
           print(map['error']['code']);
         }
 
-
-
-
-
         final reviewResponse = await http.get(Uri.parse("https://api.content.tripadvisor.com/api/v1/location/${result.locationId}/reviews?key=${ApiKeys().tripAdvisorKey}"));
         if (reviewResponse.statusCode == 200) {
           print("33333");
           Iterable i = json.decode(reviewResponse.body)['data'];
           List<TripAdvisorReview> reviews = List<TripAdvisorReview>.from(i.map((e) => TripAdvisorReview.fromJson(e)));
-
-          for (TripAdvisorReview review in reviews) {
-            setState(() {
-              taReviews.add(
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(children: createStarRating(review.rating) + [Text(review.date ?? "")],),
-                    Text(review.text),
-                    Text("${review.helpfulVotes} ${review.helpfulVotes == 1 ? "person" : "people"} found this helpful")
-                  ]
-                )
-              );          
-            });
+          if (!isDisposed) {
+            for (TripAdvisorReview review in reviews) {
+              setState(() {
+                taReviews.add(
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(children: createStarRating(review.rating) + [Text(review.date ?? "")],),
+                      Text(review.text),
+                      Text("${review.helpfulVotes} ${review.helpfulVotes == 1 ? "person" : "people"} found this helpful")
+                    ]
+                  )
+                );          
+              });
+            }
           }
         }
       }
@@ -134,11 +153,21 @@ class _AddressInformationPage extends State<AddressInformationPage> {
     }
   }
 
-  IconData bookmarkIcon = Icons.bookmark_outline;
   void addBookmark() async {
-    if (await ServerManager().addBookmark(details.id, details.lat, details.lon, details.name)) {
-      bookmarkIcon = Icons.bookmark;
+    if (await ServerManager().addBookmark(details.osmId, details.osmType)) {
+      isBookmarked = true;
+      setState(() {
+        bookmarkIcon = Icons.bookmark;
+      });
     }
+  }
+  
+  void removeBookmark() async {
+
+  }
+
+  void setRoute() async {
+    SystemManager().setRoute(await MapRoute.createNewRoute(SystemManager().getUserPosition().latitude, SystemManager().getUserPosition().longitude, details.lat, details.lon));
   }
 
   @override
@@ -166,9 +195,9 @@ class _AddressInformationPage extends State<AddressInformationPage> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    FilledButton(onPressed: () => {addBookmark()}, style: buttonStyle, child: Icon(bookmarkIcon)),
+                    FilledButton(onPressed: () {if (!isBookmarked) {addBookmark();} else {removeBookmark();}}, style: buttonStyle, child: Icon(bookmarkIcon)),
                     Row(children: [
-                      FilledButton(onPressed: () => {}, style: buttonStyle, child: const Row(children: [Icon(Icons.route), Icon(Icons.directions_car)])),
+                      FilledButton(onPressed: () => {setRoute()}, style: buttonStyle, child: const Row(children: [Icon(Icons.route), Icon(Icons.directions_car)])),
                       FilledButton(onPressed: () => {}, style: buttonStyle, child: const Row(children: [Icon(Icons.route), Icon(Icons.directions_walk)])),
                     ],),
                 ],)
