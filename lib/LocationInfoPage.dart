@@ -13,25 +13,26 @@ import 'package:map_app/MapRoute.dart';
 import 'package:map_app/ServerManager.dart';
 import 'package:map_app/SystemManager.dart';
 import 'package:map_app/TripAdvisorAPI.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-class AddressInformationPage extends StatefulWidget {
+class LocationInfoPage extends StatefulWidget {
   final LocationDetails details;
 
-  const AddressInformationPage({super.key, required this.title, required this.details});
+  const LocationInfoPage({super.key, required this.title, required this.details});
 
   final String title;
 
   @override
-  State<AddressInformationPage> createState() => _AddressInformationPage(details: details);
+  State<LocationInfoPage> createState() => _AddressInformationPage(details: details);
 }
 
-class _AddressInformationPage extends State<AddressInformationPage> {
+class _AddressInformationPage extends State<LocationInfoPage> {
   LocationDetails details;
   ButtonStyle buttonStyle = FilledButton.styleFrom(
     padding: EdgeInsets.zero
   );
 
-  Widget taDetails = Column();
+  Widget taDetailsWidget = Column();
   List<Widget> taReviews = List.empty(growable: true);
   bool isDisposed = false;
   bool isBookmarked = false;
@@ -39,6 +40,7 @@ class _AddressInformationPage extends State<AddressInformationPage> {
 
   _AddressInformationPage({required this.details}) {
     getTripAdvisorInfo();
+    ServerManager().loadBookmarks();
     for (LocationDetails i in ServerManager().bookmarks) {
       if (i.isSameAs(details)) {
         isBookmarked = true;
@@ -84,6 +86,12 @@ class _AddressInformationPage extends State<AddressInformationPage> {
     return icons;
   }
 
+  Future<void> _launchUrl(Uri url) async {
+    if (!await launchUrl(url)) {
+      throw Exception('Could not launch');
+    }
+  }
+
   void getTripAdvisorInfo() async {
     String searchQuery = '${details.name} ${details.street ?? ""}';
     final searchResponse = await http.get(Uri.parse("https://api.content.tripadvisor.com/api/v1/location/search?key=${ApiKeys().tripAdvisorKey}&latLong=${details.lat},${details.lon}&radius=5&radiusUnit=km&searchQuery=${Uri.encodeComponent(searchQuery)}"));
@@ -101,21 +109,23 @@ class _AddressInformationPage extends State<AddressInformationPage> {
 
       if (result != null) {
         final detailResponse = await http.get(Uri.parse("https://api.content.tripadvisor.com/api/v1/location/${result.locationId}/details?key=${ApiKeys().tripAdvisorKey}"));
+        TripAdvisorDetails? taDetails = null;
         if (detailResponse.statusCode == 200) {
           print("222222");
           Map<String, dynamic> map = json.decode(detailResponse.body);
-          TripAdvisorDetails details = TripAdvisorDetails.fromJson(map);
+          taDetails = TripAdvisorDetails.fromJson(map);
           if (!isDisposed) {
             setState(() {
-              taDetails = Column(
+              taDetailsWidget = Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text("TripAdvisor Results for ${result!.name}"),
-                  Row(children: createStarRating(details.rating) + [Text("${details.numReviews} reviews")]),
-                  Text(details.description ?? ""),
-                  details.websiteLink != null ? Text("Read More: ${details.websiteLink}") : Container(),
+                  (taDetails!.rating != null) ? Row(children: createStarRating(taDetails.rating as int) + [Text("${taDetails.numReviews} reviews")]) : Container(),
+                  Text(taDetails.description ?? ""),
+                  taDetails.websiteLink != null ? FilledButton(child: const Text("View Website"), onPressed: () => _launchUrl(Uri.parse(taDetails!.websiteLink as String)),) : Container(),
+                  FilledButton(child: const Text("View on TripAdvisor"), onPressed: () => _launchUrl(Uri.parse(taDetails!.taLink)),),
                 ],
-              );          
+              );
             });
           }
         }
@@ -126,25 +136,27 @@ class _AddressInformationPage extends State<AddressInformationPage> {
           print(map['error']['code']);
         }
 
-        final reviewResponse = await http.get(Uri.parse("https://api.content.tripadvisor.com/api/v1/location/${result.locationId}/reviews?key=${ApiKeys().tripAdvisorKey}"));
-        if (reviewResponse.statusCode == 200) {
-          print("33333");
-          Iterable i = json.decode(reviewResponse.body)['data'];
-          List<TripAdvisorReview> reviews = List<TripAdvisorReview>.from(i.map((e) => TripAdvisorReview.fromJson(e)));
-          if (!isDisposed) {
-            for (TripAdvisorReview review in reviews) {
-              setState(() {
-                taReviews.add(
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(children: createStarRating(review.rating) + [Text(review.date ?? "")],),
-                      Text(review.text),
-                      Text("${review.helpfulVotes} ${review.helpfulVotes == 1 ? "person" : "people"} found this helpful")
-                    ]
-                  )
-                );          
-              });
+        if (taDetails != null && taDetails.rating != null) {
+          final reviewResponse = await http.get(Uri.parse("https://api.content.tripadvisor.com/api/v1/location/${result.locationId}/reviews?key=${ApiKeys().tripAdvisorKey}"));
+          if (reviewResponse.statusCode == 200) {
+            print("33333");
+            Iterable i = json.decode(reviewResponse.body)['data'];
+            List<TripAdvisorReview> reviews = List<TripAdvisorReview>.from(i.map((e) => TripAdvisorReview.fromJson(e)));
+            if (!isDisposed) {
+              for (TripAdvisorReview review in reviews) {
+                setState(() {
+                  taReviews.add(
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(children: createStarRating(review.rating) + [Text(review.date ?? "")],),
+                        Text(review.text),
+                        Text("${review.helpfulVotes} ${review.helpfulVotes == 1 ? "person" : "people"} found this helpful")
+                      ]
+                    )
+                  );          
+                });
+              }
             }
           }
         }
@@ -161,13 +173,22 @@ class _AddressInformationPage extends State<AddressInformationPage> {
       });
     }
   }
-  
-  void removeBookmark() async {
 
+  void removeBookmark() async {
+    if (await ServerManager().removeBookmark(details.osmId, details.osmType)) {
+      isBookmarked = false;
+      setState(() {
+        bookmarkIcon = Icons.bookmark_outline;
+      });
+    }
   }
 
-  void setRoute() async {
-    SystemManager().setRoute(await MapRoute.createNewRoute(SystemManager().getUserPosition().latitude, SystemManager().getUserPosition().longitude, details.lat, details.lon));
+  void setRoadRoute() async {
+    SystemManager().setRoute(await MapRoute.createNewRoute(SystemManager().getUserPosition().latitude, SystemManager().getUserPosition().longitude, details.lat, details.lon, "car"));
+  }
+
+  void setFootpathRoute() async {
+    SystemManager().setRoute(await MapRoute.createNewRoute(SystemManager().getUserPosition().latitude, SystemManager().getUserPosition().longitude, details.lat, details.lon, "foot"));
   }
 
   @override
@@ -197,13 +218,13 @@ class _AddressInformationPage extends State<AddressInformationPage> {
                   children: [
                     FilledButton(onPressed: () {if (!isBookmarked) {addBookmark();} else {removeBookmark();}}, style: buttonStyle, child: Icon(bookmarkIcon)),
                     Row(children: [
-                      FilledButton(onPressed: () => {setRoute()}, style: buttonStyle, child: const Row(children: [Icon(Icons.route), Icon(Icons.directions_car)])),
-                      FilledButton(onPressed: () => {}, style: buttonStyle, child: const Row(children: [Icon(Icons.route), Icon(Icons.directions_walk)])),
+                      FilledButton(onPressed: () => {setRoadRoute()}, style: buttonStyle, child: const Row(children: [Icon(Icons.route), Icon(Icons.directions_car)])),
+                      FilledButton(onPressed: () => {setFootpathRoute()}, style: buttonStyle, child: const Row(children: [Icon(Icons.route), Icon(Icons.directions_walk)])),
                     ],),
                 ],)
               ],
             ),
-            taDetails,
+            taDetailsWidget,
             Column(
               children: taReviews,
             )

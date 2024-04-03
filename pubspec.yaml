@@ -43,6 +43,7 @@ dependencies:
   nominatim_geocoding: ^0.0.6
   geolocator: ^11.0.0
   google_sign_in: ^6.2.1
+  url_launcher: ^6.2.5
 
 dev_dependencies:
   flutter_test:

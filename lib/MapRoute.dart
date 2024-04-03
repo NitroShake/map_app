@@ -10,6 +10,7 @@ class MapRoute {
   final List<LatLng> pathPoints;
   final List<RouteCheckpoint> checkpoints;
   final List<Marker> test;
+  String mode;
   late LatLng? lastKnownUserLocation = null;
   int positionRouteMismatchCount = 0;
 
@@ -17,6 +18,7 @@ class MapRoute {
     required this.pathPoints,
     required this.checkpoints,
     required this.test,
+    required this.mode
   });
 
   void update(LatLng userPosition) async {
@@ -46,7 +48,7 @@ class MapRoute {
       if (lastKnownUserLocation != null && distance(pathPoints[0], lastKnownUserLocation!) < distance(userPosition, pathPoints[0])) {
         positionRouteMismatchCount++;
         if (positionRouteMismatchCount > 5) {
-          MapRoute? newRoute = await MapRoute.createNewRoute(SystemManager().getUserPosition().latitude, SystemManager().getUserPosition().longitude, checkpoints[checkpoints.length - 1].position.latitude, checkpoints[checkpoints.length - 1].position.longitude);
+          MapRoute? newRoute = await MapRoute.createNewRoute(SystemManager().getUserPosition().latitude, SystemManager().getUserPosition().longitude, checkpoints[checkpoints.length - 1].position.latitude, checkpoints[checkpoints.length - 1].position.longitude, mode);
           if (newRoute != null) {
             SystemManager().setRoute(newRoute);
           }
@@ -56,7 +58,7 @@ class MapRoute {
     lastKnownUserLocation = userPosition;
   }
 
-  factory MapRoute.fromJson(Map<String, dynamic> json) {
+  factory MapRoute.fromJson(Map<String, dynamic> json, String mode) {
     List<LatLng> pathPoints = List<LatLng>.empty(growable: true);
     List<Marker> test = List<Marker>.empty(growable: true);
     List<RouteCheckpoint> checkpoints = List.empty(growable: true);
@@ -79,21 +81,22 @@ class MapRoute {
       return MapRoute(
         pathPoints: pathPoints,
         checkpoints: checkpoints,
-        test: test
+        test: test,
+        mode: mode
       );
     }
     on Exception catch (e) {throw Exception("JSON invalid. ${e.toString()}");}
   }
 
 
-  static Future<MapRoute?> createNewRoute(double latStart, double lonStart, double latEnd, double lonEnd) async {
+  static Future<MapRoute?> createNewRoute(double latStart, double lonStart, double latEnd, double lonEnd, String transportMode) async {
     final response = await http
-      .get(Uri.parse('https://router.project-osrm.org/route/v1/driving/${lonStart},${latStart};${lonEnd},${latEnd}?overview=false&steps=true&geometries=geojson&annotations=false'));
+      .get(Uri.parse('https://router.project-osrm.org/route/v1/${transportMode}/${lonStart},${latStart};${lonEnd},${latEnd}?overview=false&steps=true&geometries=geojson&annotations=false'));
     
     if (response.statusCode == 200) {
       Map<String, dynamic> map = json.decode(response.body);
 
-      return MapRoute.fromJson(map); 
+      return MapRoute.fromJson(map, transportMode); 
     }
     else {
       return null;

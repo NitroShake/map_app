@@ -53,8 +53,8 @@ class _SearchMenuState extends State<SearchMenu> {
           TextField(
           onTap: () { SystemManager().getMainPanelController().open(); },
           onSubmitted: searchAddresses,
-          decoration: InputDecoration(
-            
+          decoration: const InputDecoration(
+            hintText: "Type to search..."
           ),)
         );
       }

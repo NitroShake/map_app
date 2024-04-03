@@ -13,8 +13,8 @@ class SettingsMenuState extends State<SettingsMenu> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        FilledButton(onPressed: () {ServerManager().googleSignIn();}, child: const Icon(Icons.signal_wifi_0_bar))
-
+        FilledButton(onPressed: () {ServerManager().googleSignIn();}, child: const Text("sign in")),
+        FilledButton(onPressed: () {ServerManager().googleSignOut();}, child: const Text("sign out"))
       ],
     );
   }

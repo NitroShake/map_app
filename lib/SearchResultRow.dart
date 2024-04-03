@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:map_app/AddressInformationPage.dart';
+import 'package:map_app/LocationInfoPage.dart';
 import 'package:map_app/LocationDetails.dart';
 import 'package:map_app/SystemManager.dart';
 
@@ -37,7 +37,7 @@ class SearchResultRow extends StatelessWidget {
           SystemManager().getMapController().move(LatLng(details.lat, details.lon), min(SystemManager().getMapController().camera.zoom, 15), offset: const Offset(0, -100));
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => AddressInformationPage(title: "Location Details", details: details,)),
+            MaterialPageRoute(builder: (context) => LocationInfoPage(title: "Location Details", details: details,)),
           );
         }, 
         style: rowButtonStyle,

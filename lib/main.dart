@@ -74,7 +74,7 @@ class MyHomePageState extends State<MyHomePage> {
     userAgentPackageName: 'com.example.app',
   );
 
-  MapRoute? route;
+  MapRoute? route = null;
 
   void destroyRoute() {
     route = null;
@@ -96,7 +96,6 @@ class MyHomePageState extends State<MyHomePage> {
       perm = await Geolocator.checkPermission();
     }
     var position2 = await Geolocator.getCurrentPosition();
-    route = await MapRoute.createNewRoute(position2.latitude, position2.longitude, 50.844770, -0.775550);
     positionStream = Geolocator.getPositionStream(locationSettings: locationSettings).listen(
       (Position? position) {
         setState(() {
@@ -171,7 +170,7 @@ class MyHomePageState extends State<MyHomePage> {
           onPanelSlide: (position) {buttonOffset = calculateButtonOffset(position); setState(() {});},
           minHeight: panelMinSize,
           maxHeight: panelMaxSize,
-          padding: EdgeInsets.all(2),
+          padding: EdgeInsets.all(5),
           onPanelClosed: () {FocusManager.instance.primaryFocus?.unfocus();},
           panel: Navigator(
             key: panelKey,
