@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:map_app/LocationInfoPage.dart';
 import 'package:map_app/MainMenu.dart';
+import 'package:map_app/Nominatim.dart';
 import 'package:map_app/RoutePage.dart';
 import 'package:map_app/SystemManager.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
@@ -56,6 +58,7 @@ class MyHomePage extends StatefulWidget {
 class MyHomePageState extends State<MyHomePage> {
   final PanelController panelController = PanelController();
   final MapController mapController = MapController();
+  late TabController tabController;
   final GlobalKey<NavigatorState> panelKey = GlobalKey<NavigatorState>();
 
 
@@ -104,7 +107,6 @@ class MyHomePageState extends State<MyHomePage> {
           }
           userPosition = LatLng(position == null ? 0 : position.latitude, position == null ? 0 : position.longitude);   
         });
-      print("${position?.latitude}, ${position?.longitude}");
     });
     var position = await Geolocator.getCurrentPosition();
     mapController.move(LatLng(position.latitude, position.longitude), mapController.camera.zoom);
@@ -119,11 +121,16 @@ class MyHomePageState extends State<MyHomePage> {
     Timer.run(() {updatePosition();});
   }
 
-  double panelMinSize = 53;
+  double panelMinSize = 55;
   double panelMaxSize = 500;
   double buttonOffset = 0;
   double calculateButtonOffset(double position) {
     return panelMinSize + ((panelMaxSize - panelMinSize) * position);
+  }
+
+  void loadTappedLocation(LatLng point) async {
+    LocationDetails details = await Nominatim.reverseSearch(point);
+    SystemManager().openPageInTab(MaterialPageRoute(builder: (context) => LocationInfoPage(title: "tapped location", details: details)), 0);
   }
 
   @override
@@ -133,6 +140,7 @@ class MyHomePageState extends State<MyHomePage> {
         FlutterMap(
           mapController: mapController,
           options: MapOptions(
+            onLongPress: (position, point) => loadTappedLocation(point),
             initialCenter: const LatLng(51.509364, -0.128928),
             initialZoom: 9.2,
             maxZoom: 20,
@@ -150,19 +158,18 @@ class MyHomePageState extends State<MyHomePage> {
         Container(
           height: MediaQuery.of(context).size.height - buttonOffset, width: MediaQuery.of(context).size.width, 
           alignment: Alignment.bottomRight,
-          child: ElevatedButton(child: Icon(Icons.route), 
+          child: route != null ? ElevatedButton(child: Icon(Icons.route), 
             onPressed: () {
               if (!SystemManager().menuIsShowingRoute) {
-                panelKey.currentState!.push(MaterialPageRoute(builder: (context) => RoutePage())); 
-                SystemManager().menuIsShowingRoute = true;
+                SystemManager().openRoutePage();
               }
               panelController.open();
-              },
+            },
             style: ElevatedButton.styleFrom(
               shape: CircleBorder(),
               padding: EdgeInsets.all(10),
             ),
-          ), 
+          ) : Container()
         ),
 
         SlidingUpPanel(
@@ -170,7 +177,7 @@ class MyHomePageState extends State<MyHomePage> {
           onPanelSlide: (position) {buttonOffset = calculateButtonOffset(position); setState(() {});},
           minHeight: panelMinSize,
           maxHeight: panelMaxSize,
-          padding: EdgeInsets.all(5),
+          padding: EdgeInsets.all(3.5),
           onPanelClosed: () {FocusManager.instance.primaryFocus?.unfocus();},
           panel: Navigator(
             key: panelKey,

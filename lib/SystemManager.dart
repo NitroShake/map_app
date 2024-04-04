@@ -46,6 +46,17 @@ class SystemManager {
     return mainPage.userPosition;
   }
 
+  void openRoutePage() {
+    mainPage.panelKey.currentState!.push(MaterialPageRoute(builder: (context) => RoutePage())); 
+    SystemManager().menuIsShowingRoute = true;
+  }
+
+  void closeRoutePage() {
+    if (routePage != null) {
+      routePage!.close();
+    }
+  }
+
   void clearRoute() {
     mainPage.route = null;
     if (routePage != null) {
@@ -65,6 +76,17 @@ class SystemManager {
   void updateBookmarkUI(List<LocationDetails> list) {
     if (bookmarkMenu != null) {
       bookmarkMenu!.updateBookmarkList(list);
+    }
+  }
+
+  void openPageInTab(MaterialPageRoute route,int tabNum) {
+    mainPage.panelController.open();
+    mainMenu.openPageInTab(route, tabNum);
+  }
+
+  void updatePosition(LatLng position) {
+    if (routePage != null) {
+      routePage?.refresh();
     }
   }
 }

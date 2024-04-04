@@ -12,25 +12,36 @@ class MainMenu extends StatefulWidget {
   State<MainMenu> createState() => MainMenuState();
 }
 
-class MainMenuState extends State<MainMenu> {
+class MainMenuState extends State<MainMenu> with SingleTickerProviderStateMixin {
   final GlobalKey<NavigatorState> searchKey = GlobalKey<NavigatorState>();
   final GlobalKey<NavigatorState> bookmarkKey = GlobalKey<NavigatorState>();
+  late TabController tabController = TabController(length: 3, vsync: this);
+  late List<GlobalKey<NavigatorState>> tabNumToKeyLookup;
 
   MainMenuState() {
     SystemManager().mainMenu = this;
+    tabNumToKeyLookup = [searchKey, bookmarkKey];
+  }
+
+  void openPageInTab(MaterialPageRoute route, int tabNum) {
+    tabController.animateTo(tabNum);
+    tabNumToKeyLookup[tabNum].currentState!.push(route);
   }
   
   @override Widget build(BuildContext context) {
     return DefaultTabController(length: 3, child: Column ( 
       children: [
         Material(child: TabBar(
-          onTap: (value) => {SystemManager().getMainPanelController().open()},
+          controller: tabController,
+          onTap: (value) {SystemManager().getMainPanelController().open();},
           tabs: const [
           Tab(icon: Icon(Icons.search)),
           Tab(icon: Icon(Icons.bookmark),),
           Tab(icon: Icon(Icons.settings),),
         ])),
-        Expanded(child: Material(child: TabBarView(children: [
+        Expanded(child: Material(child: TabBarView(
+          controller: tabController,
+          children: [
           Navigator(
             key: searchKey,
             onGenerateRoute: (route) => MaterialPageRoute(settings: route, builder: (context) => SearchMenu(title: "Search")),

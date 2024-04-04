@@ -56,6 +56,8 @@ class ServerManager {
           SystemManager().updateBookmarkUI(bookmarks);
         }
       }
+    } else {
+      SystemManager().updateBookmarkUI(List.empty());
     }
   } 
 

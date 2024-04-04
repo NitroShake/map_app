@@ -8,7 +8,7 @@ class LocationDetails {
   final String osmkey;
   final String osmValue;
   final String osmType;
-  final String name;
+  final String? name;
   final String? houseNumber;
   final String? street;
   final String? locality;

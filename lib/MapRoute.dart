@@ -11,6 +11,7 @@ class MapRoute {
   final List<RouteCheckpoint> checkpoints;
   final List<Marker> test;
   String mode;
+  final String destinationName;
   late LatLng? lastKnownUserLocation = null;
   int positionRouteMismatchCount = 0;
 
@@ -18,7 +19,8 @@ class MapRoute {
     required this.pathPoints,
     required this.checkpoints,
     required this.test,
-    required this.mode
+    required this.mode,
+    required this.destinationName
   });
 
   void update(LatLng userPosition) async {
@@ -26,10 +28,10 @@ class MapRoute {
     int closestIndex = 0;
     double distanceToBeat = distance(userPosition, pathPoints[0]);
     double newDistance = distance(userPosition, pathPoints[1]);
-    while(closestIndex < pathPoints.length && distanceToBeat >= newDistance) {
-      closestIndex++;
+    while(closestIndex + 1 < pathPoints.length && distanceToBeat >= newDistance) {
       distanceToBeat = newDistance;
       newDistance = distance(userPosition, pathPoints[closestIndex+1]);
+      closestIndex++;
     }
 
     for (int i = 0; i < closestIndex; i++) {
@@ -44,13 +46,17 @@ class MapRoute {
       }
     }
 
-    if (closestIndex == 0) {
-      if (lastKnownUserLocation != null && distance(pathPoints[0], lastKnownUserLocation!) < distance(userPosition, pathPoints[0])) {
-        positionRouteMismatchCount++;
-        if (positionRouteMismatchCount > 5) {
-          MapRoute? newRoute = await MapRoute.createNewRoute(SystemManager().getUserPosition().latitude, SystemManager().getUserPosition().longitude, checkpoints[checkpoints.length - 1].position.latitude, checkpoints[checkpoints.length - 1].position.longitude, mode);
-          if (newRoute != null) {
-            SystemManager().setRoute(newRoute);
+    if (checkpoints.isEmpty && SystemManager().getRoute() == this) {
+      SystemManager().clearRoute();
+    } else {
+      if (closestIndex == 0) {
+        if (lastKnownUserLocation != null && distance(pathPoints[0], lastKnownUserLocation!) < distance(userPosition, pathPoints[0])) {
+          positionRouteMismatchCount++;
+          if (positionRouteMismatchCount > 5) {
+            MapRoute? newRoute = await MapRoute.createNewRoute(SystemManager().getUserPosition().latitude, SystemManager().getUserPosition().longitude, checkpoints[checkpoints.length - 1].position.latitude, checkpoints[checkpoints.length - 1].position.longitude, mode, destinationName);
+            if (newRoute != null) {
+              SystemManager().setRoute(newRoute);
+            }
           }
         }
       }
@@ -58,7 +64,7 @@ class MapRoute {
     lastKnownUserLocation = userPosition;
   }
 
-  factory MapRoute.fromJson(Map<String, dynamic> json, String mode) {
+  factory MapRoute.fromJson(Map<String, dynamic> json, String mode, String destinationName) {
     List<LatLng> pathPoints = List<LatLng>.empty(growable: true);
     List<Marker> test = List<Marker>.empty(growable: true);
     List<RouteCheckpoint> checkpoints = List.empty(growable: true);
@@ -82,21 +88,22 @@ class MapRoute {
         pathPoints: pathPoints,
         checkpoints: checkpoints,
         test: test,
-        mode: mode
+        mode: mode,
+        destinationName: destinationName
       );
     }
     on Exception catch (e) {throw Exception("JSON invalid. ${e.toString()}");}
   }
 
 
-  static Future<MapRoute?> createNewRoute(double latStart, double lonStart, double latEnd, double lonEnd, String transportMode) async {
+  static Future<MapRoute?> createNewRoute(double latStart, double lonStart, double latEnd, double lonEnd, String transportMode, String destinationName) async {
     final response = await http
       .get(Uri.parse('https://router.project-osrm.org/route/v1/${transportMode}/${lonStart},${latStart};${lonEnd},${latEnd}?overview=false&steps=true&geometries=geojson&annotations=false'));
     
     if (response.statusCode == 200) {
       Map<String, dynamic> map = json.decode(response.body);
 
-      return MapRoute.fromJson(map, transportMode); 
+      return MapRoute.fromJson(map, transportMode, destinationName); 
     }
     else {
       return null;

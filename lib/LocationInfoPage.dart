@@ -31,7 +31,7 @@ class _AddressInformationPage extends State<LocationInfoPage> {
   ButtonStyle buttonStyle = FilledButton.styleFrom(
     padding: EdgeInsets.zero
   );
-
+  late String destinationName; //to pass to route
   Widget taDetailsWidget = Column();
   List<Widget> taReviews = List.empty(growable: true);
   bool isDisposed = false;
@@ -39,7 +39,11 @@ class _AddressInformationPage extends State<LocationInfoPage> {
   IconData bookmarkIcon = Icons.bookmark_outline;
 
   _AddressInformationPage({required this.details}) {
-    getTripAdvisorInfo();
+    destinationName = assembleDetails([((details.houseNumber != null && details.street != null) ? details.houseNumber! + " " + details.street! : details.name) != (details.city ?? details.county) ? 
+                      (details.houseNumber != null ? details.houseNumber! + " " + details.street! : details.name) : null, details.city ?? details.county]);
+    if (details.name != null) {
+      getTripAdvisorInfo();
+    }
     ServerManager().loadBookmarks();
     for (LocationDetails i in ServerManager().bookmarks) {
       if (i.isSameAs(details)) {
@@ -102,7 +106,7 @@ class _AddressInformationPage extends State<LocationInfoPage> {
 
       TripAdvisorSearchResult? result;
       for (TripAdvisorSearchResult r in searchResults) {
-        if (r.name.toLowerCase().contains(details.name.toLowerCase()) || details.name.toLowerCase().contains(r.name.toLowerCase())) {
+        if (r.name.toLowerCase().contains(details.name!.toLowerCase()) || details.name!.toLowerCase().contains(r.name.toLowerCase())) {
           result = r;
         }
       } 
@@ -184,11 +188,11 @@ class _AddressInformationPage extends State<LocationInfoPage> {
   }
 
   void setRoadRoute() async {
-    SystemManager().setRoute(await MapRoute.createNewRoute(SystemManager().getUserPosition().latitude, SystemManager().getUserPosition().longitude, details.lat, details.lon, "car"));
+    SystemManager().setRoute(await MapRoute.createNewRoute(SystemManager().getUserPosition().latitude, SystemManager().getUserPosition().longitude, details.lat, details.lon, "car", destinationName));
   }
 
   void setFootpathRoute() async {
-    SystemManager().setRoute(await MapRoute.createNewRoute(SystemManager().getUserPosition().latitude, SystemManager().getUserPosition().longitude, details.lat, details.lon, "foot"));
+    SystemManager().setRoute(await MapRoute.createNewRoute(SystemManager().getUserPosition().latitude, SystemManager().getUserPosition().longitude, details.lat, details.lon, "foot", destinationName));
   }
 
   @override
@@ -207,8 +211,7 @@ class _AddressInformationPage extends State<LocationInfoPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(assembleDetails([((details.houseNumber != null && details.street != null) ? details.houseNumber! + " " + details.street! : details.name) != (details.city ?? details.county) ? 
-                      (details.houseNumber != null ? details.houseNumber! + " " + details.street! : details.name) : null, details.city ?? details.county]), textScaler: const TextScaler.linear(1.7), softWrap: true,),
+                    Text(destinationName, textScaler: const TextScaler.linear(1.7), softWrap: true,),
                     Text(assembleDetails([(details.houseNumber == null ? details.street : null), details.postcode, details.county, details.state, details.country]), textScaler: const TextScaler.linear(1.1), softWrap: true,),
                     Text(assembleDetails([details.osmValue]), textScaler: const TextScaler.linear(1.1), softWrap: true,),
                   ],
@@ -218,8 +221,8 @@ class _AddressInformationPage extends State<LocationInfoPage> {
                   children: [
                     FilledButton(onPressed: () {if (!isBookmarked) {addBookmark();} else {removeBookmark();}}, style: buttonStyle, child: Icon(bookmarkIcon)),
                     Row(children: [
-                      FilledButton(onPressed: () => {setRoadRoute()}, style: buttonStyle, child: const Row(children: [Icon(Icons.route), Icon(Icons.directions_car)])),
-                      FilledButton(onPressed: () => {setFootpathRoute()}, style: buttonStyle, child: const Row(children: [Icon(Icons.route), Icon(Icons.directions_walk)])),
+                      FilledButton(onPressed: () {setRoadRoute(); SystemManager().openRoutePage();}, style: buttonStyle, child: const Row(children: [Icon(Icons.route), Icon(Icons.directions_car)])),
+                      FilledButton(onPressed: () {setFootpathRoute(); SystemManager().openRoutePage();}, style: buttonStyle, child: const Row(children: [Icon(Icons.route), Icon(Icons.directions_walk)])),
                     ],),
                 ],)
               ],
