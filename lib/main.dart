@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:dio_cache_interceptor_hive_store/dio_cache_interceptor_hive_store.dart';
+import 'package:flutter_map_cache/flutter_map_cache.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:map_app/LocationInfoPage.dart';
@@ -7,6 +9,7 @@ import 'package:map_app/MainMenu.dart';
 import 'package:map_app/Nominatim.dart';
 import 'package:map_app/RoutePage.dart';
 import 'package:map_app/SystemManager.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -72,8 +75,8 @@ class MyHomePageState extends State<MyHomePage> {
     accuracy: LocationAccuracy.bestForNavigation,
     distanceFilter: 0,
   );
-  final TileLayer tileLayer = TileLayer(
-    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+  TileLayer tileLayer = TileLayer(
+    urlTemplate: '',
     userAgentPackageName: 'com.example.app',
   );
 
@@ -112,13 +115,27 @@ class MyHomePageState extends State<MyHomePage> {
     mapController.move(LatLng(position.latitude, position.longitude), mapController.camera.zoom);
   }
 
+  void initCacheTileLayer() async {
+    tileLayer = TileLayer(
+      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+      userAgentPackageName: 'com.example.app',
+      tileProvider: CachedTileProvider (
+        maxStale: const Duration(days: 7),
+        store: HiveCacheStore((await getTemporaryDirectory()).path, hiveBoxName: 'MapCacheStore')
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
     buttonOffset = calculateButtonOffset(0);
     //timer = Timer.periodic(Duration(seconds: 5), (Timer t) => backgroundUpdate());
     SystemManager().mainPage = this;
-    Timer.run(() {updatePosition();});
+    Timer.run(() {
+      updatePosition();
+      initCacheTileLayer();
+    });
   }
 
   double panelMinSize = 55;
