@@ -104,8 +104,9 @@ class MapRoute {
 
 
   static Future<MapRoute?> createNewRoute(double latStart, double lonStart, double latEnd, double lonEnd, String transportMode, String destinationName) async {
-    final response = await http
-      .get(Uri.parse('https://router.project-osrm.org/route/v1/${transportMode}/${lonStart},${latStart};${lonEnd},${latEnd}?overview=false&steps=true&geometries=geojson&annotations=false'));
+    String url = 'https://router.project-osrm.org/route/v1/${transportMode}/${lonStart},${latStart};${lonEnd},${latEnd}?overview=false&steps=true&geometries=geojson&annotations=false';
+    
+    final response = await http.get(Uri.parse(url));
     
     if (response.statusCode == 200) {
       Map<String, dynamic> map = json.decode(response.body);
