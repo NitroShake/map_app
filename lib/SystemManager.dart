@@ -23,6 +23,7 @@ class SystemManager {
   final ttsPlayer = FlutterTts();
   RoutePageState? routePage;
   bool menuIsShowingRoute = false;
+  bool includeExtraButtons = true;
 
   SystemManager._privateConstructor() {
     ttsPlayer.setLanguage(("en-AU"));

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor_hive_store/dio_cache_interceptor_hive_store.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_map_cache/flutter_map_cache.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
@@ -9,6 +10,7 @@ import 'package:map_app/LocationInfoPage.dart';
 import 'package:map_app/MainMenu.dart';
 import 'package:map_app/Nominatim.dart';
 import 'package:map_app/RoutePage.dart';
+import 'package:map_app/ServerManager.dart';
 import 'package:map_app/SystemManager.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
@@ -64,6 +66,7 @@ class MyHomePageState extends State<MyHomePage> {
   final MapController mapController = MapController();
   late TabController tabController;
   final GlobalKey<NavigatorState> panelKey = GlobalKey<NavigatorState>();
+  bool showCloseButton = false;
 
 
   List<SearchResultRow> searchResults = List.empty(growable: true);
@@ -144,6 +147,7 @@ class MyHomePageState extends State<MyHomePage> {
     buttonOffset = calculateButtonOffset(0);
     //timer = Timer.periodic(Duration(seconds: 5), (Timer t) => backgroundUpdate());
     SystemManager().mainPage = this;
+    ServerManager().googleSignIn();
     Timer.run(() {
       updatePosition();
       initCacheTileLayer();
@@ -203,14 +207,18 @@ class MyHomePageState extends State<MyHomePage> {
 
         SlidingUpPanel(
           controller: panelController,
-          onPanelSlide: (position) {buttonOffset = calculateButtonOffset(position); setState(() {});},
+          onPanelSlide: (position) {buttonOffset = calculateButtonOffset(position); showCloseButton = true; setState(() {}); },
           minHeight: panelMinSize,
           maxHeight: panelMaxSize,
           padding: EdgeInsets.all(3.5),
-          onPanelClosed: () {FocusManager.instance.primaryFocus?.unfocus();},
+          onPanelClosed: () {FocusManager.instance.primaryFocus?.unfocus(); showCloseButton = false; setState(() {});},
           panel: Navigator(
             key: panelKey,
             onGenerateRoute: (route) => MaterialPageRoute(settings: route, builder: (context) => const MainMenu()),
+          ),
+          footer: SizedBox( 
+            width: MediaQuery.of(context).size.width - 10,
+            child: Column( crossAxisAlignment: CrossAxisAlignment.end, children: [SystemManager().includeExtraButtons && showCloseButton ? FilledButton(onPressed: () {panelController.close(); setState(() {showCloseButton = false;});}, child: Icon(Icons.close)) : Container()])
           ),
         )
       ],

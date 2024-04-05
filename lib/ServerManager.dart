@@ -25,20 +25,26 @@ class ServerManager {
   }
 
   void googleSignIn() async {
-    final GoogleSignInAccount? user = await GoogleSignIn(scopes: ['email'], clientId: "465811042306-csij9204aao2qut6vjetrru3h6doou8r.apps.googleusercontent.com", serverClientId: "465811042306-dom6qsketvf42g5k2v7uva69memphqg5.apps.googleusercontent.com").signIn();
-    if (user != null) {
-      this.user = user;
-      final GoogleSignInAuthentication auth = await user.authentication;
-      idTokenPost = Map<String, String>.from({"id_token": auth.idToken});
-      loadBookmarks();
+    try {
+      final GoogleSignInAccount? user = await GoogleSignIn(scopes: ['email'], clientId: "465811042306-csij9204aao2qut6vjetrru3h6doou8r.apps.googleusercontent.com", serverClientId: "465811042306-dom6qsketvf42g5k2v7uva69memphqg5.apps.googleusercontent.com").signIn();
+      if (user != null) {
+        this.user = user;
+        final GoogleSignInAuthentication auth = await user.authentication;
+        idTokenPost = Map<String, String>.from({"id_token": auth.idToken});
+        loadBookmarks();
+      }
+    } catch (e) {
     }
   }
 
   void googleSignOut() async {
-    if (user != null) {
-      GoogleSignIn().signOut();
-      user = null;
-      idTokenPost = null;
+    try {
+      if (user != null) {
+        GoogleSignIn().signOut();
+        user = null;
+        idTokenPost = null;
+      }
+    } catch (e) {
     }
   }
 
@@ -47,27 +53,30 @@ class ServerManager {
   }
 
   void loadBookmarks() async {
-    List<SearchResultRow> newBookmarks = List.empty(growable: true);
-    if (ServerManager().idTokenPost != null) {
-      final searchResponse = await http.post(Uri.parse("http://130.162.169.225/getbookmarks.php"), headers: ServerManager().idTokenPost, body: ServerManager().idTokenPost);
-      if (searchResponse.statusCode == 200) {
-        Iterable iter = json.decode(searchResponse.body);
-        String lookupParams = "";
-        for (Map<String, dynamic> i in iter) {
-          lookupParams += "${i['osm_type'][0].toUpperCase()}${i['osm_id']},";
-        }
+    try {
+      List<SearchResultRow> newBookmarks = List.empty(growable: true);
+      if (ServerManager().idTokenPost != null) {
+        final searchResponse = await http.post(Uri.parse("http://130.162.169.225/getbookmarks.php"), headers: ServerManager().idTokenPost, body: ServerManager().idTokenPost);
+        if (searchResponse.statusCode == 200) {
+          Iterable iter = json.decode(searchResponse.body);
+          String lookupParams = "";
+          for (Map<String, dynamic> i in iter) {
+            lookupParams += "${i['osm_type'][0].toUpperCase()}${i['osm_id']},";
+          }
 
-        final lookupResponse = await http.get(Uri.parse("https://nominatim.openstreetmap.org/lookup?format=geocodejson&addressdetails=1&osm_ids=${lookupParams}"));
-        if (lookupResponse.statusCode == 200) {
-          Iterable iter = json.decode(lookupResponse.body)['features'];
+          final lookupResponse = await http.get(Uri.parse("https://nominatim.openstreetmap.org/lookup?format=geocodejson&addressdetails=1&osm_ids=${lookupParams}"));
+          if (lookupResponse.statusCode == 200) {
+            Iterable iter = json.decode(lookupResponse.body)['features'];
 
-          List<LocationDetails> results = List<LocationDetails>.from(iter.map((e) => LocationDetails.fromJson(e)));
-          bookmarks = results;
-          SystemManager().updateBookmarkUI(bookmarks);
+            List<LocationDetails> results = List<LocationDetails>.from(iter.map((e) => LocationDetails.fromJson(e)));
+            bookmarks = results;
+            SystemManager().updateBookmarkUI(bookmarks);
+          }
         }
+      } else {
+        SystemManager().updateBookmarkUI(List.empty());
       }
-    } else {
-      SystemManager().updateBookmarkUI(List.empty());
+    } catch (e) {
     }
   } 
 

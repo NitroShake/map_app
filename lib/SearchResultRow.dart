@@ -44,8 +44,8 @@ class SearchResultRow extends StatelessWidget {
         child: Align(alignment: Alignment.centerLeft, child: Column( 
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(assembleDetails([(details.houseNumber != null && details.street != null) ? details.houseNumber! + " " + details.street! : details.name, details.city ?? details.county]), textScaler: const TextScaler.linear(1.15)),
-            Text(assembleDetails([details.postcode, details.county, details.state, details.country, details.osmValue]), textScaler: const TextScaler.linear(0.85)),
+            Text(assembleDetails([(details.houseNumber != null && details.street != null) ? details.houseNumber! + " " + details.street! : details.name, details.city ?? details.county]), textScaler: TextScaler.linear(1.15 * MediaQuery.of(context).textScaleFactor)),
+            Text(assembleDetails([details.postcode, details.county, details.state, details.country, details.osmValue]), textScaler: TextScaler.linear(0.85 * MediaQuery.of(context).textScaleFactor)),
           ],
         ),
       )

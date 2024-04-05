@@ -22,7 +22,11 @@ class MapRoute {
     required this.test,
     required this.mode,
     required this.destinationName
-  });
+  }) {
+    if (checkpoints.length > 1 && checkpoints[0].modifier == null) {
+      checkpoints.removeAt(0);
+    }
+  }
   
 
   void update(LatLng userPosition) async {
@@ -160,6 +164,8 @@ class RouteCheckpoint {
         instruction = "Go ${modifier} on the rotary, ${checkpointExit()}";
       case "exit rotary":
         instruction = "Exit rotary, ${checkpointExit()}";
+      case "arrive":
+        instruction = "You have reached your destination";
       default:
         instruction = "Turn ${modifier}";
     }

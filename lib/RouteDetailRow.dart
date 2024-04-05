@@ -21,8 +21,8 @@ class RouteDetailRow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Divider(),
-          Text(checkpoint.generateInstructions(),textScaler: TextScaler.linear(1.25),),
-          Text("${checkpoint.locationName}, ${distance}m", textScaler: TextScaler.linear(1)),
+          Text(checkpoint.generateInstructions(),textScaler: TextScaler.linear(1.2  * MediaQuery.of(context).textScaleFactor),),
+          Text("${checkpoint.locationName}, ${distance}m", textScaler: TextScaler.linear(0.8 * MediaQuery.of(context).textScaleFactor)),
         ]
       ),
     );

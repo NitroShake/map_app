@@ -78,7 +78,7 @@ class RoutePageState extends State<RoutePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: 
             List<Widget>.from([
-              SystemManager().getRoute() != null ? Text("Route Directions to ${SystemManager().getRoute()!.destinationName}", textScaler: TextScaler.linear(2),) : Container(),
+              SystemManager().getRoute() != null ? Text("Route Directions to ${SystemManager().getRoute()!.destinationName}", textScaler: TextScaler.linear(1.75  * MediaQuery.of(context).textScaleFactor),) : Container(),
             ])
             + generateRouteWidgets()
             + [Container(height: 20,)],
