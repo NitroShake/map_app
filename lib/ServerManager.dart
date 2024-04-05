@@ -1,8 +1,10 @@
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:http/http.dart';
 import 'package:map_app/LocationDetails.dart';
 import 'package:map_app/SearchResultRow.dart';
 import 'package:map_app/SystemManager.dart';
@@ -11,9 +13,13 @@ class ServerManager {
   late GoogleSignInAccount? user = null;
   late Map<String, String>? idTokenPost = null;
   late List<LocationDetails> bookmarks = List.empty(growable: true);
-  ServerManager._privateConstructor();
+  
+  ServerManager._privateConstructor() {
+    Timer.periodic(Duration(seconds: 3), (timer) {ServerManager().loadBookmarks();});
+  }
 
   static ServerManager manager = ServerManager._privateConstructor();
+
   factory ServerManager() {
     return manager;
   }
@@ -34,6 +40,10 @@ class ServerManager {
       user = null;
       idTokenPost = null;
     }
+  }
+
+  Future<Response> makeRequest(Uri uri) async {
+    return http.post(uri, headers: ServerManager().idTokenPost, body: ServerManager().idTokenPost);
   }
 
   void loadBookmarks() async {

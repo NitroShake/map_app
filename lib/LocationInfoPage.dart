@@ -8,7 +8,6 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:http/http.dart' as http;
 import 'package:map_app/LocationDetails.dart';
-import 'package:map_app/ApiKeys.dart';
 import 'package:map_app/MapRoute.dart';
 import 'package:map_app/ServerManager.dart';
 import 'package:map_app/SystemManager.dart';
@@ -98,7 +97,7 @@ class _AddressInformationPage extends State<LocationInfoPage> {
 
   void getTripAdvisorInfo() async {
     String searchQuery = '${details.name} ${details.street ?? ""}';
-    final searchResponse = await http.get(Uri.parse("https://api.content.tripadvisor.com/api/v1/location/search?key=${ApiKeys().tripAdvisorKey}&latLong=${details.lat},${details.lon}&radius=5&radiusUnit=km&searchQuery=${Uri.encodeComponent(searchQuery)}"));
+    final searchResponse = await ServerManager().makeRequest(Uri.parse("http://130.162.169.225/tasearch.php?lat=${details.lat}&lon=${details.lon}&query=${Uri.encodeComponent(searchQuery)}"));
     if (searchResponse.statusCode == 200) {
       print("11111");
       Iterable i = json.decode(searchResponse.body)['data'];
@@ -112,7 +111,7 @@ class _AddressInformationPage extends State<LocationInfoPage> {
       } 
 
       if (result != null) {
-        final detailResponse = await http.get(Uri.parse("https://api.content.tripadvisor.com/api/v1/location/${result.locationId}/details?key=${ApiKeys().tripAdvisorKey}"));
+        final detailResponse = await ServerManager().makeRequest(Uri.parse("http://130.162.169.225/tadetails.php?id=${result.locationId}"));
         TripAdvisorDetails? taDetails = null;
         if (detailResponse.statusCode == 200) {
           print("222222");
@@ -141,7 +140,7 @@ class _AddressInformationPage extends State<LocationInfoPage> {
         }
 
         if (taDetails != null && taDetails.rating != null) {
-          final reviewResponse = await http.get(Uri.parse("https://api.content.tripadvisor.com/api/v1/location/${result.locationId}/reviews?key=${ApiKeys().tripAdvisorKey}"));
+          final reviewResponse = await ServerManager().makeRequest(Uri.parse("http://130.162.169.225/tareviews.php?id=${result.locationId}"));
           if (reviewResponse.statusCode == 200) {
             print("33333");
             Iterable i = json.decode(reviewResponse.body)['data'];

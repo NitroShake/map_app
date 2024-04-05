@@ -23,7 +23,6 @@ class BookmarkMenuState extends State<BookmarkMenu> with AutomaticKeepAliveClien
 
   BookmarkMenuState() {
     SystemManager().bookmarkMenu = this;
-    Timer.periodic(Duration(seconds: 3), (timer) {ServerManager().loadBookmarks();});
   }
 
   void updateBookmarkList(List<LocationDetails> list) {
