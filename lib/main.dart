@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor_hive_store/dio_cache_interceptor_hive_store.dart';
 import 'package:flutter_map_cache/flutter_map_cache.dart';
 import 'package:http/http.dart' as http;
@@ -115,15 +116,26 @@ class MyHomePageState extends State<MyHomePage> {
     mapController.move(LatLng(position.latitude, position.longitude), mapController.camera.zoom);
   }
 
+  final dio = Dio();
+  final cachePolicy = CachePolicy.forceCache;
   void initCacheTileLayer() async {
     tileLayer = TileLayer(
       urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
       userAgentPackageName: 'com.example.app',
       tileProvider: CachedTileProvider (
+        dio: dio,
         maxStale: const Duration(days: 7),
-        store: HiveCacheStore((await getTemporaryDirectory()).path, hiveBoxName: 'MapCacheStore')
+        store: HiveCacheStore((await getTemporaryDirectory()).path, hiveBoxName: 'MapCacheStore'),
+        // interceptors: [
+        //   LogInterceptor(
+        //     responseHeader: false,
+        //     requestHeader: false,
+        //     request: false
+        //   )
+        // ]
       ),
-    );
+    );   
+    setState(() {});
   }
 
   @override

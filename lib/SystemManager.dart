@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:map_app/BookmarkMenu.dart';
@@ -19,10 +20,13 @@ class SystemManager {
   late MyHomePageState mainPage;
   late MainMenuState mainMenu;
   late BookmarkMenuState? bookmarkMenu = null;
+  final ttsPlayer = FlutterTts();
   RoutePageState? routePage;
   bool menuIsShowingRoute = false;
 
-  SystemManager._privateConstructor();
+  SystemManager._privateConstructor() {
+    ttsPlayer.setLanguage(("en-AU"));
+  }
 
   static final SystemManager _instance = SystemManager._privateConstructor();
 
@@ -88,5 +92,9 @@ class SystemManager {
     if (routePage != null) {
       routePage?.refresh();
     }
+  }
+  
+  void ttsSpeak(String text) {
+    ttsPlayer.speak(text);
   }
 }

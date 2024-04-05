@@ -10,6 +10,7 @@ class MapRoute {
   final List<LatLng> pathPoints;
   final List<RouteCheckpoint> checkpoints;
   final List<Marker> test;
+  RouteCheckpoint? lastSpokenCheckpoint = null;
   String mode;
   final String destinationName;
   late LatLng? lastKnownUserLocation = null;
@@ -22,6 +23,7 @@ class MapRoute {
     required this.mode,
     required this.destinationName
   });
+  
 
   void update(LatLng userPosition) async {
     Distance distance = const Distance();
@@ -49,6 +51,11 @@ class MapRoute {
     if (checkpoints.isEmpty && SystemManager().getRoute() == this) {
       SystemManager().clearRoute();
     } else {
+      if (distance(checkpoints[0].position, userPosition) < 500 && checkpoints[0] != lastSpokenCheckpoint) {
+        SystemManager().ttsSpeak(checkpoints[0].generateInstructions());
+        lastSpokenCheckpoint = checkpoints[0];
+      }
+
       if (closestIndex == 0) {
         if (lastKnownUserLocation != null && distance(pathPoints[0], lastKnownUserLocation!) < distance(userPosition, pathPoints[0])) {
           positionRouteMismatchCount++;
@@ -129,4 +136,33 @@ class RouteCheckpoint {
     required this.visualTest,
     required this.roundaboutExit
   });
+
+    List<String> exitNums = ["first", "second", "third", "forth", "fifth", "sixth", "seventh", "eight", "ninth", "tenth"];
+
+  String checkpointExit() {
+    if (roundaboutExit! <= exitNums.length) {
+      return "${exitNums[roundaboutExit! - 1]} exit";
+    }
+    else return "exit ${roundaboutExit}";
+  }
+
+  String generateInstructions() {
+    String instruction = "";
+    switch (modifierType) {
+      case "end of road":
+        instruction = "At the end of the road, turn ${modifier}";
+      case "roundabout":
+        instruction = "Go ${modifier} on the roundabout, ${checkpointExit()}";
+      case "exit roundabout":
+        instruction = "Exit roundabout, ${checkpointExit()}";
+      case "rotary":
+        instruction = "Go ${modifier} on the rotary, ${checkpointExit()}";
+      case "exit rotary":
+        instruction = "Exit rotary, ${checkpointExit()}";
+      default:
+        instruction = "Turn ${modifier}";
+    }
+    instruction = instruction.replaceAll("slight ", "");
+    return instruction;
+  }
 }
