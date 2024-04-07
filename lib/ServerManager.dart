@@ -33,6 +33,7 @@ class ServerManager {
         idTokenPost = Map<String, String>.from({"id_token": auth.idToken});
         loadBookmarks();
       }
+      SystemManager().updateSignInPromptUI();
     } catch (e) {
     }
   }
@@ -44,6 +45,7 @@ class ServerManager {
         user = null;
         idTokenPost = null;
       }
+      SystemManager().updateSignInPromptUI();
     } catch (e) {
     }
   }

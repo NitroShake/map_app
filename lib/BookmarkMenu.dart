@@ -20,9 +20,24 @@ class BookmarkMenu extends StatefulWidget {
 class BookmarkMenuState extends State<BookmarkMenu> with AutomaticKeepAliveClientMixin {
   final GlobalKey<NavigatorState> searchKey = GlobalKey<NavigatorState>();
   List<SearchResultRow> bookmarkWidgets = List.empty(growable:true);
+  Widget signInPrompt = Container();
 
   BookmarkMenuState() {
     SystemManager().bookmarkMenu = this;
+    if (ServerManager().user == null) {
+      signInPrompt = Text("Sign in via Settings to access bookmarks and extra details about locations.");
+    }
+    else {signInPrompt = Container();}
+  }
+
+  void refresh() {
+    if (ServerManager().user == null) {
+      signInPrompt = Text("Sign in via Settings to access bookmarks and extra details about locations.");
+    }
+    else {signInPrompt = Container();}
+    setState(() {
+      
+    });
   }
 
   void updateBookmarkList(List<LocationDetails> list) {
@@ -35,11 +50,11 @@ class BookmarkMenuState extends State<BookmarkMenu> with AutomaticKeepAliveClien
     });
   }
 
-  late List<Widget> refreshButton = [FilledButton(onPressed: () {if (ServerManager().idTokenPost != null) {ServerManager().loadBookmarks();}}, child: Text("load"))];
+  late List<Widget> refreshButton = [FilledButton(onPressed: () {if (ServerManager().idTokenPost != null) {ServerManager().loadBookmarks();}}, child: Text("Refresh"))];
   
   @override
   Widget build(BuildContext context) {
-    return ListView(children: [Column(children: refreshButton + bookmarkWidgets,)], padding: EdgeInsets.zero,);
+    return ListView(children: [Column(children: refreshButton + [signInPrompt] + bookmarkWidgets,)], padding: EdgeInsets.zero,);
   }
 
   @override

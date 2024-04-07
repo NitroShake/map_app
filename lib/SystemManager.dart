@@ -10,7 +10,9 @@ import 'package:map_app/MainMenu.dart';
 import 'package:map_app/MapRoute.dart';
 import 'package:map_app/RoutePage.dart';
 import 'package:map_app/ServerManager.dart';
+import 'package:map_app/SettingsMenu.dart';
 import 'package:map_app/main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -20,13 +22,23 @@ class SystemManager {
   late MyHomePageState mainPage;
   late MainMenuState mainMenu;
   late BookmarkMenuState? bookmarkMenu = null;
+  late SettingsMenuState? settingsMenu = null;
+  bool isLowPowerMode = false;
+  bool isExtraButtonsEnabled = false;
   final ttsPlayer = FlutterTts();
   RoutePageState? routePage;
   bool menuIsShowingRoute = false;
-  bool includeExtraButtons = true;
+  late SharedPreferences prefs;
 
   SystemManager._privateConstructor() {
     ttsPlayer.setLanguage(("en-AU"));
+    Timer.run(() { lateInit();});
+  }
+
+  void lateInit() async {
+    prefs = await SharedPreferences.getInstance();
+    setLowPowerMode(prefs.getBool('lowpower') ?? false);
+    setExtraButtons(prefs.getBool('extrabuttons') ?? false);
   }
 
   static final SystemManager _instance = SystemManager._privateConstructor();
@@ -84,6 +96,16 @@ class SystemManager {
     }
   }
 
+  void updateSignInPromptUI() {
+    if (bookmarkMenu != null) {
+      bookmarkMenu!.refresh();
+    }
+    
+    if (settingsMenu != null) {
+      settingsMenu!.refresh();
+    }
+  }
+
   void openPageInTab(MaterialPageRoute route,int tabNum) {
     mainPage.panelController.open();
     mainMenu.openPageInTab(route, tabNum);
@@ -97,5 +119,17 @@ class SystemManager {
   
   void ttsSpeak(String text) {
     ttsPlayer.speak(text);
+  }
+
+  void setLowPowerMode(bool enable) {
+    isLowPowerMode = enable;
+    prefs.setBool('lowpower', enable);
+    mainPage.setLowPowerMode(enable);
+  }
+
+  void setExtraButtons(bool enable) {
+    isExtraButtonsEnabled = enable;
+    prefs.setBool('extrabuttons', enable);
+    mainPage.refresh();
   }
 }

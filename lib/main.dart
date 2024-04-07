@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import 'package:dio/dio.dart';
 import 'package:dio_cache_interceptor_hive_store/dio_cache_interceptor_hive_store.dart';
 import 'package:flutter/widgets.dart';
@@ -66,15 +67,17 @@ class MyHomePageState extends State<MyHomePage> {
   final MapController mapController = MapController();
   late TabController tabController;
   final GlobalKey<NavigatorState> panelKey = GlobalKey<NavigatorState>();
-  bool showCloseButton = false;
-
+  bool showExtraButtons = false;
+  final double minZoom = 2.5;
+  final double maxZoom = 20;
+  double zoom = 10;
 
   List<SearchResultRow> searchResults = List.empty(growable: true);
   LatLng userPosition = const LatLng(0, 0);
   late StreamSubscription<Position> positionStream;
   late Timer timer;
 
-  final AndroidSettings locationSettings = AndroidSettings(
+  AndroidSettings locationSettings = AndroidSettings(
     intervalDuration: Duration(milliseconds: 500),
     accuracy: LocationAccuracy.bestForNavigation,
     distanceFilter: 0,
@@ -94,6 +97,14 @@ class MyHomePageState extends State<MyHomePage> {
 
   void refresh() {
     setState(() { });
+  }
+
+  void setLowPowerMode(bool enable) {
+    locationSettings = AndroidSettings(
+      intervalDuration: Duration(milliseconds: enable ? 1000 : 300),
+      accuracy: LocationAccuracy.bestForNavigation,
+      distanceFilter: 0,
+    );
   }
 
   void updatePosition() async {
@@ -166,6 +177,13 @@ class MyHomePageState extends State<MyHomePage> {
     SystemManager().openPageInTab(MaterialPageRoute(builder: (context) => LocationInfoPage(title: "tapped location", details: details)), 0);
   }
 
+  void sliderZoom(double newZoom) {
+    mapController.move(mapController.camera.center, newZoom);
+    setState(() {
+      zoom = newZoom;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -173,11 +191,12 @@ class MyHomePageState extends State<MyHomePage> {
         FlutterMap(
           mapController: mapController,
           options: MapOptions(
+            onPositionChanged: (position, hasGesture) => setState(() {zoom = position.zoom!;}),
             onLongPress: (position, point) => loadTappedLocation(point),
             initialCenter: const LatLng(51.509364, -0.128928),
-            initialZoom: 9.2,
-            maxZoom: 20,
-            minZoom: 2.5,
+            initialZoom: zoom,
+            maxZoom: maxZoom,
+            minZoom: minZoom,
             cameraConstraint: CameraConstraint.contain(bounds: LatLngBounds(const LatLng(-90, -180), const LatLng(90, 180))),
           ),
           children: [
@@ -189,36 +208,45 @@ class MyHomePageState extends State<MyHomePage> {
         ),
         
         Container(
-          height: MediaQuery.of(context).size.height - buttonOffset, width: MediaQuery.of(context).size.width, 
+          height: MediaQuery.of(context).size.height - buttonOffset - 10, width: MediaQuery.of(context).size.width, 
           alignment: Alignment.bottomRight,
-          child: route != null ? ElevatedButton(child: Icon(Icons.route), 
-            onPressed: () {
-              if (!SystemManager().menuIsShowingRoute) {
-                SystemManager().openRoutePage();
-              }
-              panelController.open();
-            },
-            style: ElevatedButton.styleFrom(
-              shape: CircleBorder(),
-              padding: EdgeInsets.all(10),
-            ),
-          ) : Container()
+          child: Container(height: 200, 
+          child: 
+            Row(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.end, children: [
+              route != null ? ElevatedButton(child: Icon(Icons.route), 
+                onPressed: () {
+                  if (!SystemManager().menuIsShowingRoute) {
+                    SystemManager().openRoutePage();
+                  }
+                  panelController.open();
+                },
+                style: ElevatedButton.styleFrom(
+                  shape: CircleBorder(),
+                  padding: EdgeInsets.all(10),
+                ),
+              ) : Container(),
+              SystemManager().isExtraButtonsEnabled ? RotatedBox(
+                quarterTurns: 3,
+                child: Material(type: MaterialType.transparency, child: Slider(min: minZoom, max: maxZoom, value: zoom, onChanged: (value) {sliderZoom(value);}, )) ,
+              ) : Container()
+            ],)
+          )
         ),
 
         SlidingUpPanel(
           controller: panelController,
-          onPanelSlide: (position) {buttonOffset = calculateButtonOffset(position); showCloseButton = true; setState(() {}); },
+          onPanelSlide: (position) {buttonOffset = calculateButtonOffset(position); showExtraButtons = true; setState(() {}); },
           minHeight: panelMinSize,
           maxHeight: panelMaxSize,
           padding: EdgeInsets.all(3.5),
-          onPanelClosed: () {FocusManager.instance.primaryFocus?.unfocus(); showCloseButton = false; setState(() {});},
+          onPanelClosed: () {FocusManager.instance.primaryFocus?.unfocus(); showExtraButtons = false; setState(() {});},
           panel: Navigator(
             key: panelKey,
             onGenerateRoute: (route) => MaterialPageRoute(settings: route, builder: (context) => const MainMenu()),
           ),
           footer: SizedBox( 
             width: MediaQuery.of(context).size.width - 10,
-            child: Column( crossAxisAlignment: CrossAxisAlignment.end, children: [SystemManager().includeExtraButtons && showCloseButton ? FilledButton(onPressed: () {panelController.close(); setState(() {showCloseButton = false;});}, child: Icon(Icons.close)) : Container()])
+            child: Column( crossAxisAlignment: CrossAxisAlignment.end, children: [SystemManager().isExtraButtonsEnabled && showExtraButtons ? FilledButton(onPressed: () {panelController.close(); setState(() {showExtraButtons = false;});}, child: Icon(Icons.close)) : Container()])
           ),
         )
       ],

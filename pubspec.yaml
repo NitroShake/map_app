@@ -50,6 +50,7 @@ dependencies:
   dio: ^5.4.2+1
   hive: ^2.2.3
   flutter_tts: ^4.0.2
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:
