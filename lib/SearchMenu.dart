@@ -21,19 +21,8 @@ class _SearchMenuState extends State<SearchMenu> {
 
   void searchAddresses(String string) async {
     searchResults = List.empty(growable: true);
-    List<LocationDetails> entries = List<LocationDetails>.empty();
-    final response = await http
-      .get(Uri.parse('http://nominatim.openstreetmap.org/search?format=geocodejson&addressdetails=1&q=${Uri.encodeComponent(string)}'));
-    
-    if (response.statusCode == 200) {
-      print(response.body);
-
-      //geocodejson
-      String test = "[${response.body}]";
-      List<dynamic> m = json.decode((test));
-      Iterable i = m[0]['features'];
-
-      entries = List<LocationDetails>.from(i.map((e) => LocationDetails.fromJson(e)));
+    List<LocationDetails>? entries = await LocationDetails.listFromNomSearch(string);
+    if (entries != null) {
       setState(() {  
         searchResults.add(
           TextField(

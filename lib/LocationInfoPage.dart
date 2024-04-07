@@ -97,12 +97,8 @@ class _AddressInformationPage extends State<LocationInfoPage> {
   void getTripAdvisorInfo() async {
     try {
       String searchQuery = '${details.name} ${details.street ?? ""}';
-      final searchResponse = await ServerManager().makeRequest(Uri.parse("http://130.162.169.225/tasearch.php?lat=${details.lat}&lon=${details.lon}&query=${Uri.encodeComponent(searchQuery)}"));
-      if (searchResponse.statusCode == 200) {
-        print("11111");
-        Iterable i = json.decode(searchResponse.body)['data'];
-        List<TripAdvisorSearchResult> searchResults = List<TripAdvisorSearchResult>.from(i.map((e) => TripAdvisorSearchResult.fromJson(e)));
-
+      List<TripAdvisorSearchResult>? searchResults = await TripAdvisorSearchResult.fromQuery(searchQuery, details.lat, details.lon);
+      if (searchResults != null) {
         TripAdvisorSearchResult? result;
         for (TripAdvisorSearchResult r in searchResults) {
           if (r.name.toLowerCase().contains(details.name!.toLowerCase()) || details.name!.toLowerCase().contains(r.name.toLowerCase())) {
@@ -111,62 +107,43 @@ class _AddressInformationPage extends State<LocationInfoPage> {
         } 
 
         if (result != null) {
-          final detailResponse = await ServerManager().makeRequest(Uri.parse("http://130.162.169.225/tadetails.php?id=${result.locationId}"));
-          TripAdvisorDetails? taDetails = null;
-          if (detailResponse.statusCode == 200) {
-            print("222222");
-            Map<String, dynamic> map = json.decode(detailResponse.body);
-            taDetails = TripAdvisorDetails.fromJson(map);
-            if (!isDisposed) {
-              setState(() {
-                taDetailsWidget = Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("TripAdvisor Results for ${result!.name}"),
-                    (taDetails!.rating != null) ? Row(children: createStarRating(taDetails.rating as int) + [Text("${taDetails.numReviews} reviews")]) : Container(),
-                    Text(taDetails.description ?? ""),
-                    taDetails.websiteLink != null ? FilledButton(child: const Text("View Website"), onPressed: () => _launchUrl(Uri.parse(taDetails!.websiteLink as String)),) : Container(),
-                    FilledButton(child: const Text("View on TripAdvisor"), onPressed: () => _launchUrl(Uri.parse(taDetails!.taLink)),),
-                  ],
-                );
-              });
-            }
-          }
-          else {
-            Map<String, dynamic> map = json.decode(detailResponse.body);
-            print(map['error']['message']);
-            print(map['error']['type']);
-            print(map['error']['code']);
+          TripAdvisorDetails? taDetails = await TripAdvisorDetails.fromId(result.locationId);
+          if (!isDisposed && taDetails != null) {
+            setState(() {
+              taDetailsWidget = Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("TripAdvisor Results for ${result!.name}"),
+                  (taDetails!.rating != null) ? Row(children: createStarRating(taDetails.rating as int) + [Text("${taDetails.numReviews} reviews")]) : Container(),
+                  Text(taDetails.description ?? ""),
+                  taDetails.websiteLink != null ? FilledButton(child: const Text("View Website"), onPressed: () => _launchUrl(Uri.parse(taDetails!.websiteLink as String)),) : Container(),
+                  FilledButton(child: const Text("View on TripAdvisor"), onPressed: () => _launchUrl(Uri.parse(taDetails!.taLink)),),
+                ],
+              );
+            });
           }
 
           if (taDetails != null && taDetails.rating != null) {
-            final reviewResponse = await ServerManager().makeRequest(Uri.parse("http://130.162.169.225/tareviews.php?id=${result.locationId}"));
-            if (reviewResponse.statusCode == 200) {
-              print("33333");
-              Iterable i = json.decode(reviewResponse.body)['data'];
-              List<TripAdvisorReview> reviews = List<TripAdvisorReview>.from(i.map((e) => TripAdvisorReview.fromJson(e)));
-              if (!isDisposed) {
-                for (TripAdvisorReview review in reviews) {
-                  setState(() {
-                    taReviews.add(
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(children: createStarRating(review.rating) + [Text(review.date ?? "")],),
-                          Text(review.text),
-                          Text("${review.helpfulVotes} ${review.helpfulVotes == 1 ? "person" : "people"} found this helpful")
-                        ]
-                      )
-                    );          
-                  });
-                }
+            List<TripAdvisorReview>? reviews = await TripAdvisorReview.listFromId(result.locationId);
+            if (!isDisposed && reviews != null) {
+              for (TripAdvisorReview review in reviews) {
+                setState(() {
+                  taReviews.add(
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(children: createStarRating(review.rating) + [Text(review.date ?? "")],),
+                        Text(review.text),
+                        Text("${review.helpfulVotes} ${review.helpfulVotes == 1 ? "person" : "people"} found this helpful")
+                      ]
+                    )
+                  );          
+                });
               }
             }
           }
         }
-
       }
-
     } catch (e) {
 
     }

@@ -1,3 +1,8 @@
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
+import 'package:latlong2/latlong.dart';
+
 class LocationDetails {
   final int id;
   final int osmId;
@@ -66,6 +71,50 @@ class LocationDetails {
       );
     }
     on Exception catch (e) {throw Exception("JSON invalid. ${e.toString()}");}
+  }
+
+  static Future<LocationDetails?> fromNomReverseSearch(LatLng point) async {
+    var response = await http.get(Uri.parse("https://nominatim.openstreetmap.org/reverse?lat=${Uri.encodeComponent(point.latitude.toString())}&lon=${Uri.encodeComponent(point.longitude.toString())}&addressdetails=1&format=geocodejson"));
+    if (response.statusCode == 200) {
+      try {
+        return LocationDetails.fromJson(json.decode(response.body)['features'][0]);
+      } catch (e) {
+        return null;
+      }
+    }
+    else {
+      return null;
+    }
+  }
+
+  static Future<List<LocationDetails>?> listFromNomSearch(String query) async {
+    final response = await http.get(Uri.parse('http://nominatim.openstreetmap.org/search?format=geocodejson&addressdetails=1&q=${Uri.encodeComponent(query)}'));
+    
+    if (response.statusCode == 200) {
+      String test = "[${response.body}]";
+      try {
+        List<dynamic> m = json.decode((test));
+        Iterable i = m[0]['features'];
+        List<LocationDetails> entries = List<LocationDetails>.from(i.map((e) => LocationDetails.fromJson(e)));
+        return entries;
+      } catch (e) {
+        return null;
+      }
+    }
+    else return null;
+  }
+
+  static Future<List<LocationDetails>?> listFromNomLookup(String lookupParams) async {
+    final lookupResponse = await http.get(Uri.parse("https://nominatim.openstreetmap.org/lookup?format=geocodejson&addressdetails=1&osm_ids=${lookupParams}"));
+    if (lookupResponse.statusCode == 200) {
+      try {
+        Iterable iter = json.decode(lookupResponse.body)['features'];
+        List<LocationDetails> results = List<LocationDetails>.from(iter.map((e) => LocationDetails.fromJson(e)));
+        return results;
+      } catch (e) {
+        return null;
+      }
+    } else return null;
   }
 
   bool isSameAs(LocationDetails details) {

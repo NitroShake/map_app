@@ -9,7 +9,6 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:map_app/LocationInfoPage.dart';
 import 'package:map_app/MainMenu.dart';
-import 'package:map_app/Nominatim.dart';
 import 'package:map_app/RoutePage.dart';
 import 'package:map_app/ServerManager.dart';
 import 'package:map_app/SystemManager.dart';
@@ -173,8 +172,10 @@ class MyHomePageState extends State<MyHomePage> {
   }
 
   void loadTappedLocation(LatLng point) async {
-    LocationDetails details = await Nominatim.reverseSearch(point);
-    SystemManager().openPageInTab(MaterialPageRoute(builder: (context) => LocationInfoPage(title: "tapped location", details: details)), 0);
+    LocationDetails? details = await LocationDetails.fromNomReverseSearch(point);
+    if (details != null) {
+      SystemManager().openPageInTab(MaterialPageRoute(builder: (context) => LocationInfoPage(title: "tapped location", details: details)), 0);
+    }
   }
 
   void sliderZoom(double newZoom) {

@@ -66,11 +66,8 @@ class ServerManager {
             lookupParams += "${i['osm_type'][0].toUpperCase()}${i['osm_id']},";
           }
 
-          final lookupResponse = await http.get(Uri.parse("https://nominatim.openstreetmap.org/lookup?format=geocodejson&addressdetails=1&osm_ids=${lookupParams}"));
-          if (lookupResponse.statusCode == 200) {
-            Iterable iter = json.decode(lookupResponse.body)['features'];
-
-            List<LocationDetails> results = List<LocationDetails>.from(iter.map((e) => LocationDetails.fromJson(e)));
+          List<LocationDetails>? results = await LocationDetails.listFromNomLookup(lookupParams);
+          if (results != null) {
             bookmarks = results;
             SystemManager().updateBookmarkUI(bookmarks);
           }
