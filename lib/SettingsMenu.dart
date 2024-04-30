@@ -23,45 +23,67 @@ class SettingsMenuState extends State<SettingsMenu> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Divider(),
-
-        Row(children: [
-        const Expanded(
-          child: Text("Low Power Mode", softWrap: true)
-        ),  
-        Switch(value: SystemManager().isLowPowerMode, onChanged: (enabled) => {setState(() {SystemManager().setLowPowerMode(!SystemManager().isLowPowerMode);})},)
-        ],),
-
-        Divider(),
-
-        Row(children: [
-        const Expanded(
-          child: Text("Enable extra buttons", softWrap: true)
-        ),  
-        Switch(value: SystemManager().isExtraButtonsEnabled, onChanged: (enabled) => {setState(() {SystemManager().setExtraButtons(!SystemManager().isExtraButtonsEnabled);})},)
-        ],),
+    return Semantics(
+      enabled: false,
+      child: 
+        Column(
+          children: [
+            Divider(),
 
 
-        Divider(),
-        Row(children: [
-        Expanded(
-          child: 
-          ServerManager().user == null
-            ? Text("Not signed in", softWrap: true)
-            : Text("Signed in as ${ServerManager().user!.displayName}", softWrap: true,),
-        ),
+            Semantics(
+              hidden: false,
+              child: Row(
+                children: [
+                  const Expanded(
+                    child: Text("Low Power Mode", softWrap: true)
+                  ),  
+                  Switch(value: SystemManager().isLowPowerMode, onChanged: (enabled) => {setState(() {SystemManager().setLowPowerMode(!SystemManager().isLowPowerMode);})},)
+                ],
+              ),
+            )
+,
 
-        ServerManager().user == null
-          ? FilledButton(onPressed: () {ServerManager().googleSignIn();}, child: const Text("Sign in"))
-          : FilledButton(onPressed: () {ServerManager().googleSignOut();}, child: const Text("Sign out")),  
-          
+            Divider(),
 
-        ],),
-        Text("We only store your bookmarks, and for your use only.", textScaler: TextScaler.linear(MediaQuery.of(context).textScaleFactor * 0.65),),
-        Divider(),
-      ],
+            Semantics(
+              hidden: false,
+              child: Row(
+                children: [
+                  const Expanded(
+                    child: Text("Enable extra buttons", softWrap: true)
+                  ),  
+                  Switch(value: SystemManager().isExtraButtonsEnabled, onChanged: (enabled) => {setState(() {SystemManager().setExtraButtons(!SystemManager().isExtraButtonsEnabled);})},)
+              ],),
+            ),
+
+
+
+
+            Divider(),
+
+            Semantics(
+              hidden: false,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: 
+                    ServerManager().user == null
+                      ? Text("Not signed in", softWrap: true)
+                      : Text("Signed in as ${ServerManager().user!.displayName}", softWrap: true,),
+                  ),
+
+                  ServerManager().user == null
+                    ? FilledButton(onPressed: () {ServerManager().googleSignIn();}, child: const Text("Sign in"))
+                    : FilledButton(onPressed: () {ServerManager().googleSignOut();}, child: const Text("Sign out")),  
+                ],
+              ),
+            ),
+
+            Text("We only store your bookmarks, and for your use only.", textScaler: TextScaler.linear(MediaQuery.of(context).textScaleFactor * 0.65),),
+            Divider(),
+          ],
+        )
     );
   }
 }

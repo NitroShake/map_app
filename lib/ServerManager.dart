@@ -54,11 +54,15 @@ class ServerManager {
     return http.post(uri, headers: ServerManager().idTokenPost, body: ServerManager().idTokenPost);
   }
 
-  void loadBookmarks() async {
+  String body = "";
+  int responseCode = -1;
+  Future<void> loadBookmarks() async {
     try {
       List<SearchResultRow> newBookmarks = List.empty(growable: true);
       if (ServerManager().idTokenPost != null) {
         final searchResponse = await http.post(Uri.parse("http://130.162.169.225/getbookmarks.php"), headers: ServerManager().idTokenPost, body: ServerManager().idTokenPost);
+        body = searchResponse.body;
+        responseCode = searchResponse.statusCode;
         if (searchResponse.statusCode == 200) {
           Iterable iter = json.decode(searchResponse.body);
           String lookupParams = "";

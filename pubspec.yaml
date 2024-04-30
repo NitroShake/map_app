@@ -51,6 +51,8 @@ dependencies:
   hive: ^2.2.3
   flutter_tts: ^4.0.2
   shared_preferences: ^2.2.2
+  dcdg: ^4.1.0
+  google_sign_in_mocks: ^0.3.0
 
 dev_dependencies:
   flutter_test:
