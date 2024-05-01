@@ -129,13 +129,16 @@ class _AddressInformationPage extends State<LocationInfoPage> {
               for (TripAdvisorReview review in reviews) {
                 setState(() {
                   taReviews.add(
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(children: createStarRating(review.rating) + [Text(review.date ?? "")],),
-                        Text(review.text),
-                        Text("${review.helpfulVotes} ${review.helpfulVotes == 1 ? "person" : "people"} found this helpful")
-                      ]
+                    Semantics(container: true, label: "${review.rating} star review", child:
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(children: createStarRating(review.rating) + [Text(review.date ?? "")],),
+                          Text(review.text),
+                          Text("${review.helpfulVotes} ${review.helpfulVotes == 1 ? "person" : "people"} found this helpful")
+                        ]
+                      )
+   
                     )
                   );          
                 });
@@ -177,46 +180,51 @@ class _AddressInformationPage extends State<LocationInfoPage> {
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: EdgeInsets.zero,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextButton(onPressed: Navigator.of(context).pop, child: const Text("< Back")),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(destinationName, textScaler: TextScaler.linear(1.7 * MediaQuery.of(context).textScaleFactor), softWrap: true,),
-                    Text(assembleDetails([(details.houseNumber == null ? details.street : null), details.postcode, details.county, details.state, details.country]), softWrap: true,),
-                    Text(assembleDetails([details.osmValue]), textScaler: const TextScaler.linear(1.1), softWrap: true,),
-                  ],
-                ),),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    FilledButton(onPressed: () {if (!isBookmarked) {addBookmark();} else {removeBookmark();}}, style: buttonStyle, child: Icon(bookmarkIcon)),
-                    Row(children: [
-                      FilledButton(onPressed: () {setRoadRoute(); SystemManager().openRoutePage();}, style: buttonStyle, child: const Row(children: [Icon(Icons.route), Icon(Icons.directions_car)])),
-                      FilledButton(onPressed: () {setFootpathRoute(); SystemManager().openRoutePage();}, style: buttonStyle, child: const Row(children: [Icon(Icons.route), Icon(Icons.directions_walk)])),
+    return
+      ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Semantics(container: true, label: "Go back", button:true, excludeSemantics: true, child: TextButton(onPressed: Navigator.of(context).pop, child: const Text("< Back")),),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Expanded(
+                  child: Semantics(hidden: false, child: 
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Semantics(container: true, hidden: false, child: Text(destinationName, textScaler: TextScaler.linear(1.7 * MediaQuery.of(context).textScaleFactor), softWrap: true,)), 
+                      Semantics(container: true, hidden: false, child: Text(assembleDetails([(details.houseNumber == null ? details.street : null), details.postcode, details.county, details.state, details.country]), softWrap: true,)),
+                      Text(assembleDetails([details.osmValue]), textScaler: const TextScaler.linear(1.1), softWrap: true,),
+                    ],
+                  ),
+                  ) ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Semantics(label: isBookmarked ? "Remove bookmark" : "Add bookmark", container:true, excludeSemantics: true, button: true, hidden: false, child:
+                        FilledButton(onPressed: () {if (!isBookmarked) {addBookmark();} else {removeBookmark();}}, style: buttonStyle, child: Icon(bookmarkIcon)),
+                      ),
+                      Row(children: [
+                        Semantics(label: "Begin navigation", container:true, excludeSemantics: true, button: true, hidden: false, child:
+                          FilledButton(onPressed: () {setRoadRoute(); SystemManager().openRoutePage();}, style: buttonStyle, child: const Row(children: [Icon(Icons.route), Icon(Icons.directions_car)])),
+                          //FilledButton(onPressed: () {setFootpathRoute(); SystemManager().openRoutePage();}, style: buttonStyle, child: const Row(children: [Icon(Icons.route), Icon(Icons.directions_walk)])),
+                        )
                     ],),
-                ],)
-              ],
-            ),
-            taDetailsWidget,
-            Column(
-              children: taReviews,
-            )
-
-            
-
-          ],
-        )
-      ],
+                  ],)
+                ],
+              ),
+              taDetailsWidget,
+              Column(
+                children: taReviews,
+              )
+            ],
+          )
+        ],
+      
     );
   }
 }

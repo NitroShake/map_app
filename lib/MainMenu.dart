@@ -34,10 +34,10 @@ class MainMenuState extends State<MainMenu> with SingleTickerProviderStateMixin 
         Material(child: TabBar(
           controller: tabController,
           onTap: (value) {SystemManager().getMainPanelController().open();},
-          tabs: const [
-          Tab(icon: Icon(Icons.search)),
-          Tab(icon: Icon(Icons.bookmark),),
-          Tab(icon: Icon(Icons.settings),),
+          tabs: [
+          Semantics(label:"Search Menu", child: Tab(icon: Icon(Icons.search))),
+          Semantics(label:"Bookmarks", child: Tab(icon: Icon(Icons.bookmark),),),
+          Semantics(label:"Settings", child: Tab(icon: Icon(Icons.settings),),)
         ])),
         Expanded(child: Material(child: TabBarView(
           controller: tabController,

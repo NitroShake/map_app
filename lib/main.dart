@@ -208,13 +208,14 @@ class MyHomePageState extends State<MyHomePage> {
           ],
         ),
         
+        Semantics(container: true, expanded: true, enabled: true, hidden: false, button: true, child:
         Container(
           height: MediaQuery.of(context).size.height - buttonOffset - 10, width: MediaQuery.of(context).size.width, 
           alignment: Alignment.bottomRight,
           child: Container(height: 200, 
           child: 
             Row(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.end, children: [
-              route != null ? ElevatedButton(child: Icon(Icons.route), 
+              route != null ? Semantics(container: true, enabled: true, hidden: false, button: true, obscured: false, excludeSemantics: false, label: "Open Route Instructions", child:ElevatedButton(child: Icon(Icons.route), 
                 onPressed: () {
                   if (!SystemManager().menuIsShowingRoute) {
                     SystemManager().openRoutePage();
@@ -225,12 +226,13 @@ class MyHomePageState extends State<MyHomePage> {
                   shape: CircleBorder(),
                   padding: EdgeInsets.all(10),
                 ),
-              ) : Container(),
+              )) : Container(),
               SystemManager().isExtraButtonsEnabled ? RotatedBox(
                 quarterTurns: 3,
                 child: Material(type: MaterialType.transparency, child: Slider(min: minZoom, max: maxZoom, value: zoom, onChanged: (value) {sliderZoom(value);}, )) ,
               ) : Container()
             ],)
+          )
           )
         ),
 
@@ -247,7 +249,7 @@ class MyHomePageState extends State<MyHomePage> {
           ),
           footer: SizedBox( 
             width: MediaQuery.of(context).size.width - 10,
-            child: Column( crossAxisAlignment: CrossAxisAlignment.end, children: [SystemManager().isExtraButtonsEnabled && showExtraButtons ? FilledButton(onPressed: () {panelController.close(); setState(() {showExtraButtons = false;});}, child: Icon(Icons.close)) : Container()])
+            child: Column( crossAxisAlignment: CrossAxisAlignment.end, children: [SystemManager().isExtraButtonsEnabled && showExtraButtons ? Semantics(container: true, label: "Close Panel", excludeSemantics: true, button: true, child: FilledButton(onPressed: () {panelController.close(); setState(() {showExtraButtons = false;});}, child: Icon(Icons.close))) : Container()])
           ),
         )
       ],

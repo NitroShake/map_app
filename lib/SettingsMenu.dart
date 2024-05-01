@@ -32,7 +32,7 @@ class SettingsMenuState extends State<SettingsMenu> {
 
 
             Semantics(
-              hidden: false,
+              container: true,
               child: Row(
                 children: [
                   const Expanded(
@@ -47,7 +47,7 @@ class SettingsMenuState extends State<SettingsMenu> {
             Divider(),
 
             Semantics(
-              hidden: false,
+              container: true,
               child: Row(
                 children: [
                   const Expanded(
@@ -63,7 +63,7 @@ class SettingsMenuState extends State<SettingsMenu> {
             Divider(),
 
             Semantics(
-              hidden: false,
+              container: true,
               child: Row(
                 children: [
                   Expanded(

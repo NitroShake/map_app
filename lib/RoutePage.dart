@@ -42,7 +42,7 @@ class RoutePageState extends State<RoutePage> {
     Distance distance = Distance();
     if (SystemManager().getRoute() != null) {
       for (var i in (SystemManager().getRoute() as MapRoute).checkpoints) {
-        list.add(RouteDetailRow(checkpoint: i, distance: distance.as(LengthUnit.Meter, SystemManager().getUserPosition(), i.position)));
+        list.add(Semantics(container: true, child: RouteDetailRow(checkpoint: i, distance: distance.as(LengthUnit.Meter, SystemManager().getUserPosition(), i.position))));
       }
     }
     return list;
@@ -78,7 +78,7 @@ class RoutePageState extends State<RoutePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: 
             List<Widget>.from([
-              SystemManager().getRoute() != null ? Text("Route Directions to ${SystemManager().getRoute()!.destinationName}", textScaler: TextScaler.linear(1.75  * MediaQuery.of(context).textScaleFactor),) : Container(),
+              SystemManager().getRoute() != null ? Semantics(container: true, child: Text("Route Directions to ${SystemManager().getRoute()!.destinationName}", textScaler: TextScaler.linear(1.75  * MediaQuery.of(context).textScaleFactor),) ) : Container(),
             ])
             + generateRouteWidgets()
             + [Container(height: 20,)],
