@@ -189,6 +189,7 @@ class MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Stack(
       children: [
+        Semantics(enabled: false, hidden: true, focusable: false, onTap: () => print("aeae"), child: 
         FlutterMap(
           mapController: mapController,
           options: MapOptions(
@@ -206,14 +207,14 @@ class MyHomePageState extends State<MyHomePage> {
             MarkerLayer(markers: (route != null ? route!.test : [])),
             PolylineLayer(polylines: [(route != null ? Polyline(points: route!.pathPoints, color: Colors.blue, strokeWidth: 5) : Polyline(points: []))])
           ],
-        ),
+        )),
         
-        Semantics(container: true, expanded: true, enabled: true, hidden: false, button: true, child:
         Container(
           height: MediaQuery.of(context).size.height - buttonOffset - 10, width: MediaQuery.of(context).size.width, 
           alignment: Alignment.bottomRight,
           child: Container(height: 200, 
           child: 
+            Semantics(container: true, expanded: true, enabled: true, focusable: true, hidden: false, button: true, excludeSemantics: true, blockUserActions: false, onTap: ()  {print("eeee");}, child:
             Row(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.end, children: [
               route != null ? Semantics(container: true, enabled: true, hidden: false, button: true, obscured: false, excludeSemantics: false, label: "Open Route Instructions", child:ElevatedButton(child: Icon(Icons.route), 
                 onPressed: () {
