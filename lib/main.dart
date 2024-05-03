@@ -188,6 +188,8 @@ class MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Stack(
+      alignment: AlignmentDirectional.topStart,
+      textDirection: TextDirection.ltr,
       children: [
         Semantics(enabled: false, hidden: true, focusable: false, onTap: () => print("aeae"), child: 
         FlutterMap(
@@ -216,7 +218,8 @@ class MyHomePageState extends State<MyHomePage> {
           child: 
             Semantics(container: true, expanded: true, enabled: true, focusable: true, hidden: false, button: true, excludeSemantics: true, blockUserActions: false, onTap: ()  {print("eeee");}, child:
             Row(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.end, children: [
-              route != null ? Semantics(container: true, enabled: true, hidden: false, button: true, obscured: false, excludeSemantics: false, label: "Open Route Instructions", child:ElevatedButton(child: Icon(Icons.route), 
+              route != null ? Semantics(container: true, enabled: true, hidden: false, button: true, obscured: false, excludeSemantics: false, label: "Open Route Instructions", 
+                child:ElevatedButton(child: Icon(Icons.route), 
                 onPressed: () {
                   if (!SystemManager().menuIsShowingRoute) {
                     SystemManager().openRoutePage();
@@ -255,5 +258,10 @@ class MyHomePageState extends State<MyHomePage> {
         )
       ],
     );
+  }
+
+  @override void dispose() {
+    ServerManager().timer.cancel();
+    super.dispose();
   }
 }

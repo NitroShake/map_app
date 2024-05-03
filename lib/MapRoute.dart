@@ -86,7 +86,6 @@ class MapRoute {
           modifierType: checkpoint['maneuver']['type'], 
           position: LatLng(checkpoint['maneuver']['location'][1], checkpoint['maneuver']['location'][0]),
           locationName: checkpoint['name'],
-          visualTest: Marker(child: Icon(Icons.location_on_rounded), point: LatLng(checkpoint['maneuver']['location'][1], checkpoint['maneuver']['location'][0])),
           roundaboutExit: checkpoint['maneuver']['exit'],
           ),
         );
@@ -130,7 +129,6 @@ class RouteCheckpoint {
   LatLng position;
   String locationName;
   int? roundaboutExit;
-  Marker visualTest;
 
   RouteCheckpoint({
     required this.pathPointIndex,
@@ -138,7 +136,6 @@ class RouteCheckpoint {
     required this.modifierType,
     required this.position,
     required this.locationName,
-    required this.visualTest,
     required this.roundaboutExit
   });
 

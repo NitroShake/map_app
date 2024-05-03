@@ -13,9 +13,10 @@ class ServerManager {
   late GoogleSignInAccount? user = null;
   late Map<String, String>? idTokenPost = null;
   late List<LocationDetails> bookmarks = List.empty(growable: true);
+  late Timer timer;
   
   ServerManager._privateConstructor() {
-    Timer.periodic(Duration(seconds: 3), (timer) {ServerManager().loadBookmarks();});
+    timer = Timer.periodic(Duration(seconds: 3), (timer) {ServerManager().loadBookmarks();});
   }
 
   static ServerManager manager = ServerManager._privateConstructor();

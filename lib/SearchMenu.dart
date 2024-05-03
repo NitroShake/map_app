@@ -13,11 +13,17 @@ class SearchMenu extends StatefulWidget {
   final String title;
 
   @override
-  State<SearchMenu> createState() => _SearchMenuState();
+  State<SearchMenu> createState() => SearchMenuState();
 }
 
-class _SearchMenuState extends State<SearchMenu> {
+class SearchMenuState extends State<SearchMenu> {
   List<Widget> searchResults = List.empty(growable: true);
+
+  void update() {
+    setState(() {
+      
+    });
+  }
 
   void searchAddresses(String string) async {
     searchResults = List.empty(growable: true);
@@ -36,7 +42,7 @@ class _SearchMenuState extends State<SearchMenu> {
     }
   }
 
-  _SearchMenuState() {
+  SearchMenuState() {
     Timer.run(() => setState(() {  
         searchResults.add(
           TextField(

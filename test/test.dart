@@ -5,15 +5,23 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
+import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter_map/flutter_map.dart';
 import 'package:google_sign_in_mocks/google_sign_in_mocks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:map_app/LocationDetails.dart';
+import 'package:map_app/LocationInfoPage.dart';
+import 'package:map_app/MainMenu.dart';
 import 'package:map_app/MapRoute.dart';
+import 'package:map_app/SearchMenu.dart';
+import 'package:map_app/SearchResultRow.dart';
 import 'package:map_app/ServerManager.dart';
 import 'package:http/http.dart' as http;
+import 'package:map_app/SystemManager.dart';
 import 'package:map_app/main.dart';
 
 class _HttpOverrides extends HttpOverrides {}
@@ -53,75 +61,104 @@ void main() async {
     expect(route!.checkpoints[0].position, LatLng(50.769986, -0.870364));
   });
 
+  //TODO: this should be seperated into multiple tests
+  testWidgets("search menu tests", (widgetTester) async {
+    await widgetTester.pumpWidget(const MyApp());
+    //tap search tab
+    final searchTab = find.byIcon(Icons.search);
+    expect(searchTab, findsOneWidget);
+    await widgetTester.tap(searchTab);
+    await widgetTester.pump(Duration(seconds: 1));
 
-  test("Get location details", () async {
+    //find search menu
+    final searchMenu = find.byType(SearchMenu);
+    expect(searchMenu, findsOneWidget);
 
+    //populate search menu
+    final searchMenuState = widgetTester.state(find.byType(SearchMenu));
+    (searchMenuState as SearchMenuState).searchResults.add(
+      SearchResultRow(details:
+        const LocationDetails(
+          id: 1,lat: 1,lon: 1,classification: "classification",type: "type",osmkey: "osm_key",osmValue: "osm_value", 
+          name: "Test Name", houseNumber: null, street: null, locality: '', district: '', postcode: '', city: '', county: '', state: '', country: '', osmId: 1, osmType: ''
+        )
+      )
+    );
+    (searchMenuState as SearchMenuState).update();
+    await widgetTester.pump(Duration(seconds: 1));
+
+    //tap search result
+    final button = find.byType(OutlinedButton);
+    expect(button, findsOneWidget);
+    await widgetTester.tap(button);
+    await widgetTester.pump(Duration(seconds: 3));
+
+    //check new page's title and buttons
+    final titleTest = find.byType(LocationInfoPage);
+    expect(titleTest, findsOneWidget);
+    final buttons = find.byType(FilledButton);
+    expect(buttons, findsNWidgets(2));
+
+    //close any timers
+    await widgetTester.pumpAndSettle();
   });
 
-  test("Get TripAdvisor details", () => {
-
+  testWidgets("Settings page tests", (widgetTester) async {
+    await widgetTester.pumpWidget(const MyApp());
+    //tap settings tab
+    final settingsTab = find.byIcon(Icons.settings);
+    expect(settingsTab, findsOneWidget);
+    print(SystemManager().mainMenu.tabController.index);
+    await widgetTester.tap(settingsTab);
+    await widgetTester.pump(Duration(seconds: 3));
+    print(SystemManager().mainMenu.tabController.index);
+    await widgetTester.pumpAndSettle();
   });
 
-  test("UI - Search and load location", () => {
+  testWidgets("Route page tests", (widgetTester) async {
+    await widgetTester.pumpWidget(const MyApp());
+    SystemManager().setRoute(MapRoute(
+      pathPoints: new List.from([LatLng(0, 0)]), 
+      checkpoints: List.from([
+        RouteCheckpoint(
+          pathPointIndex: 0, 
+          modifier: 'left', 
+          modifierType: 'end of road', 
+          position: LatLng(0,0), 
+          locationName: 'end of road name', 
+          roundaboutExit: null    
+        ),
+        RouteCheckpoint(
+          pathPointIndex: 0, 
+          modifier: 'right', 
+          modifierType: 'roundabout', 
+          position: LatLng(0,0), 
+          locationName: 'roundabout name', 
+          roundaboutExit: 1    
+        ),
+      ]), 
+      test: new List.empty(), 
+      mode: 'car', 
+      destinationName: 'destination name')
+    );
+    await widgetTester.pump(Duration(seconds: 1));
+    var routeButton = find.byType(ElevatedButton);
+    expect(routeButton, findsOneWidget);
 
-  });
+    await widgetTester.tap(routeButton);
+    await widgetTester.pump(Duration(seconds: 1));
+    expect(find.text("At the end of the road, turn left"), findsOne);
+    expect(find.text("Go right on the roundabout, first exit"), findsOne);
 
-  test("UI - Load and view Route", () => {
-
-  });
-
-  test("UI - Access Bookmark", () => {
-
-  });
-
-  Future<void> getGoogleMockDetails() async {
-    //http.post(Uri.https('https://www.googleapis.com/oauth2/v4/token'), headers: {
-    //  'grant_type': '',
-    //  'client_id': '465811042306-dom6qsketvf42g5k2v7uva69memphqg5.apps.googleusercontent.com',
-    //  'client_secret': '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'
-    //});
-
-    var searchResponse = await http.post(Uri.parse('https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/${Uri.encodeComponent('map-app-testing@mapapp-418912.iam.gserviceaccount.com')}:generateIdToken'), headers: {
-      'audience': 'ss',
-      'includeEmail': 'false'
-    });
-    print(searchResponse.body);
-  }
-
-
-  late MockGoogleSignIn googleSignIn;
-  setUp(() {
-    googleSignIn = MockGoogleSignIn();
-  });
-
-  test('should return idToken and accessToken when authenticating', () async {
-    await getGoogleMockDetails();
-    final signInAccount = await googleSignIn.signIn();
-    final signInAuthentication = await signInAccount!.authentication;
-    expect(signInAuthentication, isNotNull);
-    expect(googleSignIn.currentUser, isNotNull);
-    expect(signInAuthentication.accessToken, isNotNull);
-    expect(signInAuthentication.idToken, isNotNull);
-    ServerManager().user = signInAccount;
-    ServerManager().idTokenPost = Map<String, String>.from({"id_token": 'eyJhbGciOiJSUzI1NiIsImtpZCI6ImUxYjkzYzY0MDE0NGI4NGJkMDViZjI5NmQ2NzI2MmI2YmM2MWE0ODciLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiI0NjU4MTEwNDIzMDYtZG9tNnFza2V0dmY0Mmc1azJ2N3V2YTY5bWVtcGhxZzUuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI0NjU4MTEwNDIzMDYtZG9tNnFza2V0dmY0Mmc1azJ2N3V2YTY5bWVtcGhxZzUuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMTM3MjU0MzkxMTc3MDEwMTI2OTgiLCJlbWFpbCI6ImNhbWVyb25za2VycnkxMzRAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImF0X2hhc2giOiJqRU5zX29hMV9sLWF2TnhoalJGZktnIiwiaWF0IjoxNzE0MjU3NzYxLCJleHAiOjE3MTQyNjEzNjF9.KSB0X3Z7eptWBSRswvkcTZIP-CS-hsa00BsxQ2zJkKCVIgOQhCOVBqKSl3XoKansa2r3gVF338G5mOpPPmRX242hkxX7OrfWO0t__Jy2DJtnqpSHuOjIsRN-_sMIDnZKAev77FZCdvpshe1T1lCnJ0SP2O1qXpD22PiU9UgIAsrslELFlxHvkrlxjOqSP1UBPZoRh5URFHoWl97ou6VMnrBNA7x23ENpq4zqQu5K5JN9mXmwnf9KwTNnslnTG51R6FVFTQinsJYxO_7Diu_qDq7MRDrLd_FiSnvhqo34Bcxlf5TdSOGbvWfmeNY8I08oGE2aKgsRGYX_O8WHlfYT1w'});
-    await ServerManager().loadBookmarks();
-    print(ServerManager().body.substring(0));
-    print(ServerManager().responseCode);
-    print(signInAuthentication.idToken);
-  });
-
-  test('should return null when google login is cancelled by the user',
-      () async {
-    googleSignIn.setIsCancelled(true);
-    final signInAccount = await googleSignIn.signIn();
-    expect(signInAccount, isNull);
-  });
-  test('testing google login twice, once cancelled, once not cancelled at the same test.', () async {
-   googleSignIn.setIsCancelled(true);
-    final signInAccount = await googleSignIn.signIn();
-    expect(signInAccount, isNull);
-    googleSignIn.setIsCancelled(false);
-    final signInAccountSecondAttempt = await googleSignIn.signIn();
-    expect(signInAccountSecondAttempt, isNotNull);
+    //cancel route
+    final cancelButton = find.widgetWithText(FilledButton, "Cancel Route");
+    expect(cancelButton, findsOneWidget);
+    await widgetTester.tap(cancelButton);
+    await widgetTester.pump(Duration(seconds: 1));
+    await widgetTester.tap(find.widgetWithText(TextButton, "Yes"));
+    await widgetTester.pump(Duration(seconds: 1));
+    expect(find.text("At the end of the road, turn left"), findsNothing);
+    routeButton = find.byType(ElevatedButton);
+    expect(routeButton, findsNothing);
   });
 }
