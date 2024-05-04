@@ -23,8 +23,9 @@ class MainMenuState extends State<MainMenu> with SingleTickerProviderStateMixin 
     tabNumToKeyLookup = [searchKey, bookmarkKey];
   }
 
-  void openPageInTab(MaterialPageRoute route, int tabNum) {
+  void openPageInTab(MaterialPageRoute route, int tabNum) async {
     tabController.animateTo(tabNum);
+    await Future.delayed(Duration(milliseconds: 100));
     tabNumToKeyLookup[tabNum].currentState!.push(route);
   }
   

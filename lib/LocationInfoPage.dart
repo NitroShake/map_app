@@ -113,11 +113,11 @@ class _AddressInformationPage extends State<LocationInfoPage> {
               taDetailsWidget = Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("TripAdvisor Results for ${result!.name}"),
-                  (taDetails!.rating != null) ? Row(children: createStarRating(taDetails.rating as int) + [Text("${taDetails.numReviews} reviews")]) : Container(),
-                  Text(taDetails.description ?? ""),
+                  Text("TripAdvisor Results for ${result!.name}", textScaler: TextScaler.linear(MediaQuery.of(context).textScaleFactor * 1.25)),
+                  taDetails.description != null ? Text(taDetails.description ?? "") : Container(),
                   taDetails.websiteLink != null ? FilledButton(child: const Text("View Website"), onPressed: () => _launchUrl(Uri.parse(taDetails!.websiteLink as String)),) : Container(),
                   FilledButton(child: const Text("View on TripAdvisor"), onPressed: () => _launchUrl(Uri.parse(taDetails!.taLink)),),
+                  (taDetails!.rating != null) ? Row(children: createStarRating(taDetails.rating as int) + [Text("${taDetails.numReviews} reviews")]) : Container(),
                 ],
               );
             });
@@ -126,6 +126,7 @@ class _AddressInformationPage extends State<LocationInfoPage> {
           if (taDetails != null && taDetails.rating != null) {
             List<TripAdvisorReview>? reviews = await TripAdvisorReview.listFromId(result.locationId);
             if (!isDisposed && reviews != null) {
+              taReviews.add(Divider());
               for (TripAdvisorReview review in reviews) {
                 setState(() {
                   taReviews.add(
@@ -217,6 +218,7 @@ class _AddressInformationPage extends State<LocationInfoPage> {
                   ],)
                 ],
               ),
+              Divider(),
               taDetailsWidget,
               Column(
                 children: taReviews,
